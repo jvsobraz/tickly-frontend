@@ -1,0 +1,33 @@
+{
+  "/api": {
+    "target": "https://localhost:44310",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/Auth": {
+    "target": "https://localhost:44310",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/Events": {
+    "target": "https://localhost:44310",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/Orders": {
+    "target": "https://localhost:44310",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/Tickets": {
+    "target": "https://localhost:44310",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/WebHook": {
+    "target": "https://localhost:44310",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

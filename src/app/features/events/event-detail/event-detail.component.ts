@@ -1,0 +1,246 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { EventService } from '../../../core/services/event.service';
+import { OrderService } from '../../../core/services/order.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { EventResponse, TicketTypeResponse, PaymentMethod, OrderItemRequest } from '../../../core/models';
+
+interface CartItem {
+  ticketType: TicketTypeResponse;
+  quantity: number;
+}
+
+@Component({
+  selector: 'app-event-detail',
+  standalone: true,
+  imports: [
+    CommonModule, RouterLink, FormsModule,
+    MatButtonModule, MatCardModule, MatIconModule,
+    MatProgressSpinnerModule, MatSnackBarModule,
+    MatDividerModule, MatRadioModule, MatSelectModule, MatFormFieldModule
+  ],
+  template: `
+    @if (loading) {
+      <div class="loading-overlay" style="min-height: 100vh">
+        <mat-progress-spinner mode="indeterminate" />
+      </div>
+    } @else if (event) {
+      <!-- Event Banner -->
+      <div class="event-banner" [style.background-image]="'url(' + (event.imageUrl || 'assets/default-event.jpg') + ')'">
+        <div class="banner-overlay">
+          <div class="container">
+            <span class="category-badge" *ngIf="event.category">{{ event.category }}</span>
+            <h1>{{ event.title }}</h1>
+            <div class="event-meta-list">
+              <span><mat-icon>calendar_today</mat-icon> {{ event.dateTime | date:'EEEE, dd/MM/yyyy - HH:mm':'':'pt' }}</span>
+              <span><mat-icon>location_on</mat-icon> {{ event.venue }}, {{ event.city }}/{{ event.state }}</span>
+              <span><mat-icon>person</mat-icon> Organizado por {{ event.organizerName }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container event-content">
+        <div class="event-layout">
+          <!-- Description -->
+          <div class="event-description-section">
+            <h2>Sobre o Evento</h2>
+            <p>{{ event.description }}</p>
+
+            <h3>Local</h3>
+            <p><mat-icon>location_on</mat-icon> {{ event.address }}, {{ event.city }}/{{ event.state }}</p>
+          </div>
+
+          <!-- Ticket Purchase -->
+          <div class="ticket-section">
+            <mat-card class="ticket-card">
+              <mat-card-header>
+                <mat-card-title>Ingressos</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @for (tt of event.ticketTypes; track tt.id) {
+                  @if (tt.isActive && tt.quantityAvailable > 0) {
+                    <div class="ticket-type">
+                      <div class="ticket-info">
+                        <strong>{{ tt.name }}</strong>
+                        @if (tt.description) { <p>{{ tt.description }}</p> }
+                        <div class="ticket-price">
+                          @if (tt.price === 0) {
+                            <span class="price-free">GRATUITO</span>
+                          } @else {
+                            <span class="price">{{ tt.price | currency:'BRL' }}</span>
+                          }
+                        </div>
+                        <small class="availability">{{ tt.quantityAvailable }} disponíveis</small>
+                      </div>
+                      <mat-form-field appearance="outline" class="qty-select">
+                        <mat-label>Qtd</mat-label>
+                        <mat-select [(ngModel)]="quantities[tt.id]">
+                          @for (n of getQuantityOptions(tt.quantityAvailable); track n) {
+                            <mat-option [value]="n">{{ n }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                    <mat-divider />
+                  }
+                }
+
+                @if (totalItems > 0) {
+                  <div class="order-summary">
+                    <strong>Resumo:</strong>
+                    @for (item of cartItems; track item.ticketType.id) {
+                      <div class="summary-line">
+                        <span>{{ item.quantity }}x {{ item.ticketType.name }}</span>
+                        <span>{{ item.ticketType.price * item.quantity | currency:'BRL' }}</span>
+                      </div>
+                    }
+                    <mat-divider />
+                    <div class="summary-total">
+                      <strong>Total</strong>
+                      <strong>{{ totalAmount | currency:'BRL' }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="payment-method">
+                    <p><strong>Forma de Pagamento:</strong></p>
+                    <mat-radio-group [(ngModel)]="selectedPaymentMethod" class="radio-group">
+                      <mat-radio-button [value]="PaymentMethod.Card">
+                        <mat-icon>credit_card</mat-icon> Cartão
+                      </mat-radio-button>
+                      <mat-radio-button [value]="PaymentMethod.Pix">
+                        <mat-icon>pix</mat-icon> PIX
+                      </mat-radio-button>
+                    </mat-radio-group>
+                  </div>
+                }
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-raised-button color="primary" class="full-width buy-btn"
+                        [disabled]="totalItems === 0 || buying"
+                        (click)="buyTickets()">
+                  @if (buying) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
+                  @else { <mat-icon>shopping_cart</mat-icon> Comprar Ingressos }
+                </button>
+                @if (!authService.isAuthenticated()) {
+                  <p class="login-hint">
+                    <a routerLink="/login">Entre</a> ou <a routerLink="/register">cadastre-se</a> para comprar
+                  </p>
+                }
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    }
+  `,
+  styles: [`
+    .event-banner { height: 400px; background-size: cover; background-position: center; position: relative; }
+    .banner-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+      display: flex; align-items: flex-end; padding-bottom: 32px; color: white;
+      h1 { font-size: 2rem; font-weight: 700; margin: 8px 0; } }
+    .event-meta-list { display: flex; gap: 16px; flex-wrap: wrap;
+      span { display: flex; align-items: center; gap: 4px; } }
+    .event-content { padding: 32px 16px; }
+    .event-layout { display: grid; grid-template-columns: 1fr 380px; gap: 32px;
+      @media (max-width: 900px) { grid-template-columns: 1fr; } }
+    .ticket-card { position: sticky; top: 80px; }
+    .ticket-type { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 0; }
+    .ticket-info { flex: 1; p { color: #616161; font-size: 0.9rem; margin: 4px 0; } }
+    .availability { color: #757575; }
+    .qty-select { width: 100px; margin-left: 16px; }
+    .order-summary { padding: 16px 0; }
+    .summary-line, .summary-total { display: flex; justify-content: space-between; padding: 4px 0; }
+    .summary-total { padding-top: 8px; }
+    .payment-method { padding: 16px 0; }
+    .radio-group { display: flex; gap: 16px; }
+    .buy-btn { height: 48px; font-size: 1rem; }
+    .login-hint { text-align: center; font-size: 0.9rem; color: #757575; margin-top: 8px; a { color: #6200ea; } }
+    .category-badge { background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; }
+  `]
+})
+export class EventDetailComponent implements OnInit {
+  private eventService = inject(EventService);
+  private orderService = inject(OrderService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  authService = inject(AuthService);
+
+  event: EventResponse | null = null;
+  loading = true;
+  buying = false;
+  quantities: Record<number, number> = {};
+  selectedPaymentMethod = PaymentMethod.Card;
+  PaymentMethod = PaymentMethod;
+
+  ngOnInit(): void {
+    const id = Number(this.route.snapshot.params['id']);
+    this.eventService.getEventById(id).subscribe({
+      next: (event) => {
+        this.event = event;
+        event.ticketTypes.forEach(tt => this.quantities[tt.id] = 0);
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.router.navigate(['/events']);
+      }
+    });
+  }
+
+  get cartItems(): CartItem[] {
+    if (!this.event) return [];
+    return this.event.ticketTypes
+      .filter(tt => this.quantities[tt.id] > 0)
+      .map(tt => ({ ticketType: tt, quantity: this.quantities[tt.id] }));
+  }
+
+  get totalItems(): number {
+    return this.cartItems.reduce((sum, i) => sum + i.quantity, 0);
+  }
+
+  get totalAmount(): number {
+    return this.cartItems.reduce((sum, i) => sum + i.ticketType.price * i.quantity, 0);
+  }
+
+  getQuantityOptions(max: number): number[] {
+    return Array.from({ length: Math.min(max, 10) + 1 }, (_, i) => i);
+  }
+
+  buyTickets(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
+    const items: OrderItemRequest[] = this.cartItems.map(i => ({
+      ticketTypeId: i.ticketType.id,
+      quantity: i.quantity
+    }));
+
+    this.buying = true;
+    this.orderService.createOrder({ items, paymentMethod: this.selectedPaymentMethod }).subscribe({
+      next: (order) => {
+        this.buying = false;
+        this.router.navigate(['/checkout', order.id]);
+      },
+      error: (err) => {
+        this.buying = false;
+        this.snackBar.open(err.error?.error || 'Erro ao criar pedido', 'Fechar',
+          { duration: 4000, panelClass: 'error-snackbar' });
+      }
+    });
+  }
+}
