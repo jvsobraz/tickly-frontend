@@ -78,6 +78,19 @@ interface CartItem {
 
             <h3>Local</h3>
             <p><mat-icon>location_on</mat-icon> {{ event.address }}, {{ event.city }}/{{ event.state }}</p>
+
+            <!-- Share section -->
+            <div class="share-section">
+              <h3>Compartilhar</h3>
+              <div class="share-buttons">
+                <a mat-raised-button class="share-whatsapp" [href]="whatsappShareUrl()" target="_blank" rel="noopener">
+                  <mat-icon>chat</mat-icon> WhatsApp
+                </a>
+                <button mat-stroked-button class="share-copy" (click)="copyLink()">
+                  <mat-icon>link</mat-icon> Copiar link
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Ticket Purchase -->
@@ -221,6 +234,10 @@ interface CartItem {
     .price-original { text-decoration: line-through; color: #9e9e9e; font-size: 0.9rem; margin-right: 6px; }
     .price-flash { color: #f44336; font-weight: 700; }
     .flash-discount { background: #f44336; color: white; font-size: 0.72rem; padding: 1px 6px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
+    .share-section { margin-top: 24px; h3 { font-size: 1rem; font-weight: 700; margin: 0 0 12px; } }
+    .share-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    .share-whatsapp { background: #25d366 !important; color: white !important; border-radius: 8px !important; text-decoration: none; }
+    .share-copy { border-radius: 8px !important; }
   `]
 })
 export class EventDetailComponent implements OnInit, OnDestroy {
@@ -326,6 +343,18 @@ export class EventDetailComponent implements OnInit, OnDestroy {
 
   getQuantityOptions(max: number): number[] {
     return Array.from({ length: Math.min(max, 10) + 1 }, (_, i) => i);
+  }
+
+  whatsappShareUrl(): string {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(`Confira este evento: ${this.event?.title} — `);
+    return `https://wa.me/?text=${text}${url}`;
+  }
+
+  copyLink(): void {
+    navigator.clipboard.writeText(window.location.href).then(() =>
+      this.snackBar.open('Link copiado!', 'OK', { duration: 2000 })
+    );
   }
 
   buyTickets(): void {

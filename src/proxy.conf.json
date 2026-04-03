@@ -15,5 +15,6 @@
   "/SocialProof": { "target": "https://localhost:44310", "secure": false, "changeOrigin": true },
   "/PaymentLinks": { "target": "https://localhost:44310", "secure": false, "changeOrigin": true },
   "/FlashSales": { "target": "https://localhost:44310", "secure": false, "changeOrigin": true },
-  "/TicketTransfers": { "target": "https://localhost:44310", "secure": false, "changeOrigin": true }
+  "/TicketTransfers": { "target": "https://localhost:44310", "secure": false, "changeOrigin": true },
+  "/Config": { "target": "https://localhost:44310", "secure": false, "changeOrigin": true }
 }

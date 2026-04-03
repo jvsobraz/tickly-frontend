@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/core/services/loyalty.service.ts"],
+  "sourcesContent": ["import { Injectable } from '@angular/core';\r\nimport { HttpClient } from '@angular/common/http';\r\nimport { Observable } from 'rxjs';\r\nimport { LoyaltyBalanceResponse, LoyaltyTransactionResponse } from '../models';\r\n\r\n@Injectable({ providedIn: 'root' })\r\nexport class LoyaltyService {\r\n  private readonly BASE_URL = '/Loyalty';\r\n  constructor(private http: HttpClient) {}\r\n\r\n  getBalance(): Observable<LoyaltyBalanceResponse> {\r\n    return this.http.get<LoyaltyBalanceResponse>(`${this.BASE_URL}/balance`);\r\n  }\r\n\r\n  getHistory(): Observable<LoyaltyTransactionResponse[]> {\r\n    return this.http.get<LoyaltyTransactionResponse[]>(`${this.BASE_URL}/history`);\r\n  }\r\n}\r\n"],
+  "mappings": ";;;;;;;;;AAMM,IAAO,iBAAP,MAAO,gBAAc;EAEzB,YAAoB,MAAgB;AAAhB,SAAA,OAAA;AADH,SAAA,WAAW;EACW;EAEvC,aAAU;AACR,WAAO,KAAK,KAAK,IAA4B,GAAG,KAAK,QAAQ,UAAU;EACzE;EAEA,aAAU;AACR,WAAO,KAAK,KAAK,IAAkC,GAAG,KAAK,QAAQ,UAAU;EAC/E;;;uBAVW,iBAAc,mBAAA,UAAA,CAAA;IAAA;EAAA;;4EAAd,iBAAc,SAAd,gBAAc,WAAA,YADD,OAAM,CAAA;EAAA;;",
+  "names": []
+}

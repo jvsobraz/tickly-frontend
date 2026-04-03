@@ -119,48 +119,50 @@ import { CreateEventRequest, CreateTicketTypeRequest } from '../../../core/model
         <mat-step [stepControl]="ticketsArray">
           <ng-template matStepLabel>Tipos de Ingresso</ng-template>
           <div class="step-form">
-            <div formArrayName="ticketTypes" [formGroup]="fullForm">
-              @for (tt of ticketsArray.controls; track i; let i = $index) {
-                <mat-card class="ticket-type-card">
-                  <mat-card-header>
-                    <mat-card-title>Ingresso {{ i + 1 }}</mat-card-title>
-                    @if (ticketsArray.length > 1) {
-                      <button mat-icon-button color="warn" (click)="removeTicketType(i)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    }
-                  </mat-card-header>
-                  <mat-card-content [formGroupName]="i">
-                    <div class="form-row">
-                      <mat-form-field appearance="outline" class="flex-1">
-                        <mat-label>Nome</mat-label>
-                        <input matInput formControlName="name" placeholder="Ex: Inteira, Meia-entrada...">
+            <form [formGroup]="fullForm">
+              <div formArrayName="ticketTypes">
+                @for (tt of ticketsArray.controls; track tt; let i = $index) {
+                  <mat-card class="ticket-type-card">
+                    <mat-card-header>
+                      <mat-card-title>Ingresso {{ i + 1 }}</mat-card-title>
+                      @if (ticketsArray.length > 1) {
+                        <button mat-icon-button color="warn" type="button" (click)="removeTicketType(i)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </mat-card-header>
+                    <mat-card-content [formGroupName]="i">
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="flex-1">
+                          <mat-label>Nome</mat-label>
+                          <input matInput formControlName="name" placeholder="Ex: Inteira, Meia-entrada...">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" style="width:150px">
+                          <mat-label>Preço (R$)</mat-label>
+                          <input matInput type="number" formControlName="price" min="0">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" style="width:150px">
+                          <mat-label>Quantidade</mat-label>
+                          <input matInput type="number" formControlName="quantityTotal" min="1">
+                        </mat-form-field>
+                      </div>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Descrição (opcional)</mat-label>
+                        <input matInput formControlName="description">
                       </mat-form-field>
-                      <mat-form-field appearance="outline" style="width:150px">
-                        <mat-label>Preço (R$)</mat-label>
-                        <input matInput type="number" formControlName="price" min="0">
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" style="width:150px">
-                        <mat-label>Quantidade</mat-label>
-                        <input matInput type="number" formControlName="quantityTotal" min="1">
-                      </mat-form-field>
-                    </div>
-                    <mat-form-field appearance="outline" class="full-width">
-                      <mat-label>Descrição (opcional)</mat-label>
-                      <input matInput formControlName="description">
-                    </mat-form-field>
-                  </mat-card-content>
-                </mat-card>
-              }
-            </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </form>
 
-            <button mat-stroked-button (click)="addTicketType()">
+            <button mat-stroked-button type="button" (click)="addTicketType()">
               <mat-icon>add</mat-icon> Adicionar Tipo de Ingresso
             </button>
 
             <div class="step-actions">
               <button mat-button matStepperPrevious>Voltar</button>
-              <button mat-raised-button color="primary" (click)="createEvent()" [disabled]="loading">
+              <button mat-raised-button color="primary" type="button" (click)="createEvent()" [disabled]="loading">
                 @if (loading) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
                 @else { <mat-icon>check</mat-icon> Criar Evento }
               </button>

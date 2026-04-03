@@ -73,6 +73,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/resale/resale.component').then(m => m.ResaleComponent)
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
     path: 'pay/:token',
     loadComponent: () => import('./features/pay/pay.component').then(m => m.PayComponent)
   },
