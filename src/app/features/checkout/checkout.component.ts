@@ -1,13 +1,13 @@
-import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatStepperModule } from '@angular/material/stepper';
 import { OrderService } from '../../core/services/order.service';
 import { OrderResponse, OrderStatus, PaymentMethod } from '../../core/models';
 
@@ -19,117 +19,420 @@ declare var Stripe: any;
   imports: [
     CommonModule, RouterLink,
     MatButtonModule, MatCardModule, MatIconModule,
-    MatProgressSpinnerModule, MatSnackBarModule,
-    MatDividerModule, MatStepperModule
+    MatProgressSpinnerModule, MatSnackBarModule, MatDividerModule
   ],
   template: `
-    <div class="container checkout-container">
-      <h1 class="section-title">Finalizar Compra</h1>
+    <div class="checkout-page">
+      <div class="container checkout-container">
+        <h1 class="checkout-title">
+          <mat-icon>shopping_bag</mat-icon> Finalizar Compra
+        </h1>
 
-      @if (loadingOrder) {
-        <div class="loading-overlay"><mat-progress-spinner mode="indeterminate" /></div>
-      } @else if (order) {
+        @if (loadingOrder) {
+          <div class="loading-overlay"><mat-progress-spinner mode="indeterminate" /></div>
+        } @else if (order) {
 
-        @if (order.status === OrderStatus.Paid) {
-          <!-- Success state -->
-          <div class="success-state">
-            <mat-icon class="success-icon">check_circle</mat-icon>
-            <h2>Pagamento Confirmado!</h2>
-            <p>Seus ingressos foram gerados. Acesse <strong>Meus Ingressos</strong> para visualizá-los.</p>
-            <button mat-raised-button color="primary" routerLink="/my-tickets">
-              <mat-icon>qr_code_2</mat-icon> Ver Meus Ingressos
-            </button>
-          </div>
-        } @else {
-          <div class="checkout-layout">
-            <!-- Order Summary -->
-            <mat-card class="order-summary-card">
-              <mat-card-header>
-                <mat-card-title>Resumo do Pedido #{{ order.id }}</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                @for (item of order.items; track item.id) {
-                  <div class="order-item">
-                    <div>
-                      <strong>{{ item.quantity }}x {{ item.ticketTypeName }}</strong>
-                      <p>{{ item.eventTitle }}</p>
-                    </div>
-                    <span>{{ item.subtotal | currency:'BRL' }}</span>
-                  </div>
-                  <mat-divider />
-                }
-                <div class="order-total">
-                  <strong>Total a pagar:</strong>
-                  <strong class="price">{{ order.totalAmount | currency:'BRL' }}</strong>
+          @if (order.status === OrderStatus.Paid) {
+            <!-- ── Success state ── -->
+            <div class="success-state fade-in">
+              <div class="success-circle">
+                <mat-icon>check</mat-icon>
+              </div>
+              <h2>Pagamento Confirmado!</h2>
+              <p>Seus ingressos foram gerados e estão disponíveis na sua carteira.</p>
+              <a mat-raised-button color="primary" routerLink="/my-tickets" class="success-btn">
+                <mat-icon>confirmation_number</mat-icon> Ver Meus Ingressos
+              </a>
+            </div>
+          } @else {
+
+            <div class="checkout-layout">
+              <!-- ── Order summary ── -->
+              <div class="summary-card">
+                <div class="card-title-row">
+                  <mat-icon>receipt_long</mat-icon>
+                  <h2>Resumo do Pedido #{{ order.id }}</h2>
                 </div>
-              </mat-card-content>
-            </mat-card>
 
-            <!-- Payment -->
-            <mat-card class="payment-card">
-              <mat-card-header>
-                <mat-card-title>
-                  @if (order.paymentMethod === PaymentMethod.Pix) {
-                    <mat-icon>pix</mat-icon> Pagamento via PIX
-                  } @else {
-                    <mat-icon>credit_card</mat-icon> Pagamento com Cartão
+                <div class="items-list">
+                  @for (item of order.items; track item.id) {
+                    <div class="order-item">
+                      <div class="item-info">
+                        <strong>{{ item.quantity }}x {{ item.ticketTypeName }}</strong>
+                        <span>{{ item.eventTitle }}</span>
+                      </div>
+                      <span class="item-price">{{ item.subtotal | currency:'BRL' }}</span>
+                    </div>
                   }
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                @if (order.paymentMethod === PaymentMethod.Pix) {
-                  <div class="pix-info">
-                    <p>Após confirmar, você receberá o QR Code PIX para pagamento.</p>
-                    <p><strong>Validade:</strong> 1 hora</p>
-                    <p><strong>Valor:</strong> {{ order.totalAmount | currency:'BRL' }}</p>
-                  </div>
-                }
+                </div>
 
-                <!-- Stripe Payment Element -->
-                @if (order.paymentMethod === PaymentMethod.Card) {
+                <div class="summary-total">
+                  <span>Total a pagar</span>
+                  <strong class="total-value">{{ order.totalAmount | currency:'BRL' }}</strong>
+                </div>
+
+                <div class="payment-badge">
+                  @if (order.paymentMethod === PaymentMethod.Pix) {
+                    <mat-icon>pix</mat-icon> <span>Pagamento via PIX</span>
+                  } @else {
+                    <mat-icon>credit_card</mat-icon> <span>Pagamento com Cartão</span>
+                  }
+                </div>
+              </div>
+
+              <!-- ── Payment panel ── -->
+              <div class="payment-card">
+                @if (order.paymentMethod === PaymentMethod.Pix) {
+                  <!-- PIX flow -->
+                  @if (!pixConfirmed) {
+                    <div class="pix-instructions">
+                      <div class="pix-icon-wrap">
+                        <mat-icon>pix</mat-icon>
+                      </div>
+                      <h3>Pague com PIX</h3>
+                      <ul class="pix-steps">
+                        <li><mat-icon>looks_one</mat-icon> Clique em "Gerar QR Code PIX" abaixo</li>
+                        <li><mat-icon>looks_two</mat-icon> Abra o app do seu banco e escaneie o QR Code</li>
+                        <li><mat-icon>looks_3</mat-icon> Confirme o pagamento de <strong>{{ order.totalAmount | currency:'BRL' }}</strong></li>
+                        <li><mat-icon>looks_4</mat-icon> Seus ingressos serão gerados automaticamente</li>
+                      </ul>
+                      <div class="pix-detail-row">
+                        <span>Valor</span><strong>{{ order.totalAmount | currency:'BRL' }}</strong>
+                      </div>
+                      <div class="pix-detail-row">
+                        <span>Validade</span><strong>1 hora</strong>
+                      </div>
+                    </div>
+
+                    @if (pixQrCode) {
+                      <!-- QR Code exibido -->
+                      <div class="qr-section fade-in">
+                        <p class="qr-label">Escaneie o QR Code com seu banco:</p>
+                        <img [src]="pixQrCode" alt="PIX QR Code" class="pix-qr">
+                        @if (pixCopyPaste) {
+                          <button mat-stroked-button class="copy-btn" (click)="copyPixCode()">
+                            <mat-icon>content_copy</mat-icon> Copiar código PIX
+                          </button>
+                        }
+                        <p class="pix-waiting">
+                          <mat-progress-spinner diameter="16" mode="indeterminate" />
+                          Aguardando confirmação do pagamento...
+                        </p>
+                      </div>
+                    }
+
+                    <button mat-raised-button color="primary" class="pay-btn"
+                            (click)="confirmPayment()" [disabled]="processingPayment || !stripeReady">
+                      @if (processingPayment) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
+                      @else { <mat-icon>pix</mat-icon> {{ pixQrCode ? 'Já paguei' : 'Gerar QR Code PIX' }} }
+                    </button>
+
+                  } @else {
+                    <div class="pix-success">
+                      <mat-icon>check_circle</mat-icon>
+                      <p>PIX confirmado! Gerando seus ingressos...</p>
+                      <mat-progress-spinner mode="indeterminate" />
+                    </div>
+                  }
+
+                } @else {
+                  <!-- Card flow (Stripe Elements) -->
+                  <h3 class="payment-title"><mat-icon>credit_card</mat-icon> Dados do Cartão</h3>
                   <div id="payment-element" class="stripe-element"></div>
                   @if (stripeError) {
-                    <p class="stripe-error">{{ stripeError }}</p>
+                    <div class="stripe-error-box">
+                      <mat-icon>error</mat-icon> {{ stripeError }}
+                    </div>
                   }
+                  <button mat-raised-button color="primary" class="pay-btn"
+                          (click)="confirmPayment()" [disabled]="processingPayment || !stripeReady">
+                    @if (processingPayment) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
+                    @else { <mat-icon>lock</mat-icon> Pagar {{ order.totalAmount | currency:'BRL' }} }
+                  </button>
                 }
-              </mat-card-content>
-              <mat-card-actions>
-                <button mat-raised-button color="primary" class="full-width pay-btn"
-                        (click)="confirmPayment()" [disabled]="processingPayment || !stripeReady">
-                  @if (processingPayment) {
-                    <mat-progress-spinner diameter="20" mode="indeterminate" />
-                  } @else {
-                    <mat-icon>lock</mat-icon>
-                    Pagar {{ order.totalAmount | currency:'BRL' }}
-                  }
-                </button>
-                <button mat-button routerLink="/" class="full-width" style="margin-top:8px">Cancelar</button>
-              </mat-card-actions>
-            </mat-card>
-          </div>
-        }
-      }
-    </div>
 
-    <!-- Load Stripe.js -->
-    <script src="https://js.stripe.com/v3/"></script>
+                <button mat-button routerLink="/" class="cancel-btn">Cancelar pedido</button>
+
+                <div class="security-note">
+                  <mat-icon>lock</mat-icon>
+                  Pagamento processado com segurança pelo Stripe
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
   `,
   styles: [`
-    .checkout-container { padding: 32px 16px; max-width: 900px; }
-    .checkout-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-      @media (max-width: 768px) { grid-template-columns: 1fr; } }
-    .order-item { display: flex; justify-content: space-between; padding: 12px 0; p { color: #757575; font-size: 0.9rem; margin: 4px 0; } }
-    .order-total { display: flex; justify-content: space-between; padding: 16px 0; font-size: 1.1rem; }
-    .stripe-element { padding: 16px; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 100px; }
-    .stripe-error { color: #e53935; font-size: 0.9rem; margin-top: 8px; }
-    .pay-btn { height: 52px; font-size: 1rem; }
-    .success-state { text-align: center; padding: 64px; }
-    .success-icon { font-size: 80px; width: 80px; height: 80px; color: #43a047; display: block; margin: 0 auto 24px; }
-    .pix-info { background: #f3e5f5; padding: 16px; border-radius: 8px; }
+    /* ── Page ── */
+    .checkout-page { padding-top: 64px; min-height: 100vh; background: var(--background); }
+
+    .checkout-container { padding: 40px 16px 64px; max-width: 960px; }
+
+    .checkout-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 0 0 32px;
+      mat-icon { color: var(--primary); font-size: 1.8rem; width: 1.8rem; height: 1.8rem; }
+    }
+
+    /* ── Layout ── */
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+
+      @media (max-width: 768px) { grid-template-columns: 1fr; }
+    }
+
+    /* ── Summary card ── */
+    .summary-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      mat-icon { color: var(--primary); }
+      h2 { font-size: 1rem; font-weight: 700; margin: 0; }
+    }
+
+    .items-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      span { font-size: 0.82rem; color: var(--text-secondary); }
+    }
+
+    .item-price { font-weight: 600; font-size: 0.95rem; white-space: nowrap; }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 0;
+      span { font-size: 0.9rem; color: var(--text-secondary); }
+    }
+
+    .total-value { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+
+    .payment-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface-2);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--primary); }
+    }
+
+    /* ── Payment card ── */
+    .payment-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .payment-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+      mat-icon { color: var(--primary); }
+    }
+
+    /* ── Stripe element ── */
+    .stripe-element {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      min-height: 80px;
+      background: var(--surface-2);
+    }
+
+    .stripe-error-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffebee;
+      color: #c62828;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    /* ── PIX flow ── */
+    .pix-instructions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pix-icon-wrap {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #e8f5e9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      mat-icon { color: #2e7d32; font-size: 32px; width: 32px; height: 32px; }
+    }
+
+    .pix-instructions h3 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+
+    .pix-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; }
+      }
+    }
+
+    .pix-detail-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      span { color: var(--text-secondary); }
+    }
+
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .qr-label { font-size: 0.88rem; color: var(--text-secondary); margin: 0; text-align: center; }
+
+    .pix-qr {
+      width: 200px;
+      height: 200px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .copy-btn { border-radius: 8px !important; font-size: 0.82rem !important; }
+
+    .pix-waiting {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .pix-success {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 24px;
+      text-align: center;
+      mat-icon { font-size: 48px; width: 48px; height: 48px; color: #43a047; }
+      p { color: var(--text-secondary); margin: 0; }
+    }
+
+    /* ── Buttons ── */
+    .pay-btn {
+      width: 100%;
+      height: 52px !important;
+      font-size: 1rem !important;
+      border-radius: 10px !important;
+      font-weight: 700 !important;
+    }
+
+    .cancel-btn { color: var(--text-hint) !important; font-size: 0.85rem !important; }
+
+    .security-note {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--text-hint);
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
+    }
+
+    /* ── Success state ── */
+    .success-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 80px 24px;
+      gap: 16px;
+    }
+
+    .success-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #e8f5e9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      mat-icon { font-size: 48px; width: 48px; height: 48px; color: #43a047; }
+    }
+
+    .success-state h2 { font-size: 1.6rem; font-weight: 800; margin: 0; }
+    .success-state p  { color: var(--text-secondary); margin: 0; }
+
+    .success-btn { height: 48px !important; font-size: 1rem !important; border-radius: 10px !important; }
   `]
 })
 export class CheckoutComponent implements OnInit {
   private orderService = inject(OrderService);
+  private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
@@ -139,16 +442,16 @@ export class CheckoutComponent implements OnInit {
   processingPayment = false;
   stripeReady = false;
   stripeError = '';
+  pixQrCode = '';
+  pixCopyPaste = '';
+  pixConfirmed = false;
 
   OrderStatus = OrderStatus;
   PaymentMethod = PaymentMethod;
 
   private stripe: any;
   private elements: any;
-  private paymentElement: any;
-
-  // Stripe publishable key - replace with your key
-  private readonly STRIPE_PK = 'pk_test_SUA_CHAVE_PUBLICA_STRIPE_AQUI';
+  private pollInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit(): void {
     const orderId = Number(this.route.snapshot.params['orderId']);
@@ -167,32 +470,41 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+  }
+
   private async initStripe(clientSecret: string, paymentMethod: PaymentMethod): Promise<void> {
     try {
-      // Load Stripe dynamically
+      // Fetch publishable key from backend
+      const config: any = await this.http.get('/Config/stripe-key').toPromise();
+      const publishableKey = config?.publishableKey;
+
+      if (!publishableKey || publishableKey.includes('COLOQUE')) {
+        this.stripeError = 'Chave do Stripe não configurada. Configure Stripe:PublishableKey no appsettings.';
+        return;
+      }
+
       if (typeof Stripe === 'undefined') {
         await this.loadStripeScript();
       }
 
-      this.stripe = Stripe(this.STRIPE_PK);
-
-      this.elements = this.stripe.elements({
-        clientSecret,
-        locale: 'pt-BR'
-      });
+      this.stripe = Stripe(publishableKey);
+      this.elements = this.stripe.elements({ clientSecret, locale: 'pt-BR' });
 
       if (paymentMethod === PaymentMethod.Card) {
-        this.paymentElement = this.elements.create('payment');
+        const paymentEl = this.elements.create('payment');
         setTimeout(() => {
-          this.paymentElement.mount('#payment-element');
+          paymentEl.mount('#payment-element');
           this.stripeReady = true;
         }, 100);
       } else {
-        // PIX is handled differently
+        // PIX — ready to confirm immediately
         this.stripeReady = true;
       }
     } catch (err) {
       console.error('Stripe init error:', err);
+      this.stripeError = 'Erro ao inicializar pagamento.';
     }
   }
 
@@ -209,6 +521,12 @@ export class CheckoutComponent implements OnInit {
   async confirmPayment(): Promise<void> {
     if (!this.stripe || !this.order) return;
 
+    // If PIX QR code already shown, "já paguei" — poll once more then redirect
+    if (this.order.paymentMethod === PaymentMethod.Pix && this.pixQrCode) {
+      this.pollForPixConfirmation(true);
+      return;
+    }
+
     this.processingPayment = true;
     this.stripeError = '';
 
@@ -219,27 +537,78 @@ export class CheckoutComponent implements OnInit {
         result = await this.stripe.confirmPixPayment(this.order.stripeClientSecret, {
           payment_method: { pix: {} }
         });
+
+        if (result.error) {
+          this.stripeError = result.error.message || 'Erro ao gerar PIX.';
+          this.processingPayment = false;
+          return;
+        }
+
+        // PIX intent created — extract QR code from next_action
+        const nextAction = result.paymentIntent?.next_action;
+        if (nextAction?.type === 'pix_display_qr_code') {
+          this.pixQrCode = nextAction.pix_display_qr_code?.image_url_png ?? '';
+          this.pixCopyPaste = nextAction.pix_display_qr_code?.data ?? '';
+        }
+        this.processingPayment = false;
+
+        // Start polling for payment confirmation
+        this.pollForPixConfirmation(false);
+
       } else {
         result = await this.stripe.confirmPayment({
           elements: this.elements,
-          confirmParams: {
-            return_url: `${window.location.origin}/checkout/${this.order.id}`
-          },
+          confirmParams: { return_url: `${window.location.origin}/checkout/${this.order.id}` },
           redirect: 'if_required'
         });
-      }
 
-      if (result.error) {
-        this.stripeError = result.error.message || 'Erro no pagamento.';
-        this.processingPayment = false;
-      } else if (result.paymentIntent?.status === 'succeeded') {
-        this.snackBar.open('Pagamento realizado com sucesso!', 'OK', { duration: 3000, panelClass: 'success-snackbar' });
-        this.order!.status = OrderStatus.Paid;
-        this.processingPayment = false;
+        if (result.error) {
+          this.stripeError = result.error.message || 'Erro no pagamento.';
+          this.processingPayment = false;
+        } else if (result.paymentIntent?.status === 'succeeded') {
+          // Notify backend to generate tickets
+          this.orderService.confirmOrder(this.order!.id).subscribe({
+            next: () => {
+              this.order!.status = OrderStatus.Paid;
+              this.processingPayment = false;
+              this.snackBar.open('Pagamento realizado com sucesso!', 'OK', { duration: 3000, panelClass: 'success-snackbar' });
+            },
+            error: () => {
+              this.order!.status = OrderStatus.Paid;
+              this.processingPayment = false;
+            }
+          });
+        }
       }
-    } catch (err: any) {
+    } catch (err) {
       this.stripeError = 'Erro inesperado no pagamento.';
       this.processingPayment = false;
     }
+  }
+
+  private pollForPixConfirmation(immediate: boolean): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+
+    const check = () => {
+      this.orderService.getOrderById(this.order!.id).subscribe({
+        next: (o) => {
+          if (o.status === OrderStatus.Paid) {
+            if (this.pollInterval) clearInterval(this.pollInterval);
+            this.order = o;
+            this.pixConfirmed = true;
+            setTimeout(() => this.router.navigate(['/my-tickets']), 2000);
+          }
+        }
+      });
+    };
+
+    if (immediate) { check(); return; }
+    this.pollInterval = setInterval(check, 4000);
+  }
+
+  copyPixCode(): void {
+    navigator.clipboard.writeText(this.pixCopyPaste).then(() =>
+      this.snackBar.open('Código PIX copiado!', 'OK', { duration: 2000 })
+    );
   }
 }

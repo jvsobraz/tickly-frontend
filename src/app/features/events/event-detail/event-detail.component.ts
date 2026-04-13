@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { EventService } from '../../../core/services/event.service';
 import { OrderService } from '../../../core/services/order.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { EventResponse, TicketTypeResponse, PaymentMethod, OrderItemRequest } from '../../../core/models';
+import { SocialProofService } from '../../../core/services/social-proof.service';
+import { WaitlistService } from '../../../core/services/waitlist.service';
+import { FlashSaleService } from '../../../core/services/flash-sale.service';
+import { ReviewService, EventReviewSummary } from '../../../core/services/review.service';
+import { EventResponse, TicketTypeResponse, PaymentMethod, OrderItemRequest, SocialProofResponse, FlashSaleResponse } from '../../../core/models';
 
 interface CartItem {
   ticketType: TicketTypeResponse;
@@ -51,6 +55,21 @@ interface CartItem {
         </div>
       </div>
 
+      <!-- Social Proof Banner -->
+      @if (socialProof && (socialProof.viewersNow > 1 || socialProof.ticketsSoldLastHour > 0)) {
+        <div class="social-proof-bar">
+          @if (socialProof.viewersNow > 1) {
+            <span><mat-icon>visibility</mat-icon> {{ socialProof.viewersNow }} pessoas vendo agora</span>
+          }
+          @if (socialProof.ticketsSoldLastHour > 0) {
+            <span><mat-icon>local_fire_department</mat-icon> {{ socialProof.ticketsSoldLastHour }} ingressos vendidos na última hora</span>
+          }
+          @if (socialProof.urgencyMessage) {
+            <span class="urgency"><mat-icon>warning</mat-icon> {{ socialProof.urgencyMessage }}</span>
+          }
+        </div>
+      }
+
       <div class="container event-content">
         <div class="event-layout">
           <!-- Description -->
@@ -60,6 +79,99 @@ interface CartItem {
 
             <h3>Local</h3>
             <p><mat-icon>location_on</mat-icon> {{ event.address }}, {{ event.city }}/{{ event.state }}</p>
+
+            <!-- Share section -->
+            <div class="share-section">
+              <h3>Compartilhar</h3>
+              <div class="share-buttons">
+                <a mat-raised-button class="share-whatsapp" [href]="whatsappShareUrl()" target="_blank" rel="noopener">
+                  <mat-icon>chat</mat-icon> WhatsApp
+                </a>
+                <button mat-stroked-button class="share-copy" (click)="copyLink()">
+                  <mat-icon>link</mat-icon> Copiar link
+                </button>
+              </div>
+            </div>
+
+            <!-- Reviews section -->
+            <div class="reviews-section">
+              <h2>Avaliações</h2>
+
+              @if (reviewSummary()) {
+                <div class="reviews-summary">
+                  <div class="rating-big">
+                    <span class="rating-number">{{ reviewSummary()!.averageRating | number:'1.1-1' }}</span>
+                    <div class="stars-row">
+                      @for (s of [1,2,3,4,5]; track s) {
+                        <mat-icon class="star" [class.filled]="s <= reviewSummary()!.averageRating">star</mat-icon>
+                      }
+                    </div>
+                    <span class="rating-count">{{ reviewSummary()!.totalReviews }} avaliações</span>
+                  </div>
+                  <div class="rating-bars">
+                    @for (star of [5,4,3,2,1]; track star) {
+                      <div class="bar-row">
+                        <span class="bar-label">{{ star }}</span>
+                        <mat-icon class="bar-star">star</mat-icon>
+                        <div class="bar-track">
+                          <div class="bar-fill"
+                               [style.width.%]="reviewSummary()!.totalReviews > 0
+                                 ? (reviewSummary()!.ratingDistribution[star] || 0) / reviewSummary()!.totalReviews * 100
+                                 : 0">
+                          </div>
+                        </div>
+                        <span class="bar-count">{{ reviewSummary()!.ratingDistribution[star] || 0 }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Write review form -->
+                @if (authService.isAuthenticated() && !reviewSubmitted()) {
+                  <div class="write-review">
+                    <h3>Deixar avaliação</h3>
+                    <div class="star-picker">
+                      @for (s of [1,2,3,4,5]; track s) {
+                        <mat-icon class="star pick" [class.filled]="s <= newRating"
+                                  (click)="newRating = s" (mouseover)="hoverRating = s"
+                                  (mouseleave)="hoverRating = 0"
+                                  [class.hover]="s <= hoverRating">star</mat-icon>
+                      }
+                    </div>
+                    <textarea class="review-textarea" [(ngModel)]="newComment"
+                              placeholder="Conta como foi o evento (opcional)..." rows="3"></textarea>
+                    <button mat-raised-button color="primary" (click)="submitReview()"
+                            [disabled]="newRating === 0 || submittingReview()">
+                      @if (submittingReview()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+                      @else { <mat-icon>send</mat-icon> Enviar }
+                    </button>
+                  </div>
+                }
+
+                <!-- Review list -->
+                <div class="reviews-list">
+                  @for (r of reviewSummary()!.reviews; track r.id) {
+                    <div class="review-item">
+                      <div class="review-header">
+                        <div class="review-avatar">{{ r.userName.charAt(0).toUpperCase() }}</div>
+                        <div>
+                          <strong>{{ r.userName }}</strong>
+                          <div class="review-stars">
+                            @for (s of [1,2,3,4,5]; track s) {
+                              <mat-icon class="star sm" [class.filled]="s <= r.rating">star</mat-icon>
+                            }
+                          </div>
+                        </div>
+                        <small class="review-date">{{ r.createdAt | date:'dd/MM/yyyy' }}</small>
+                      </div>
+                      @if (r.comment) { <p class="review-comment">{{ r.comment }}</p> }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="no-reviews">Nenhuma avaliação ainda. Seja o primeiro!</p>
+              }
+            </div>
           </div>
 
           <!-- Ticket Purchase -->
@@ -71,12 +183,22 @@ interface CartItem {
               <mat-card-content>
                 @for (tt of event.ticketTypes; track tt.id) {
                   @if (tt.isActive && tt.quantityAvailable > 0) {
-                    <div class="ticket-type">
+                    <div class="ticket-type" [class.has-flash]="getFlashSale(tt.id)">
+                      @if (getFlashSale(tt.id); as flash) {
+                        <div class="flash-banner">
+                          <span>⚡ PROMOÇÃO FLASH</span>
+                          <span class="flash-countdown">{{ getCountdown(flash.endAt) }}</span>
+                        </div>
+                      }
                       <div class="ticket-info">
                         <strong>{{ tt.name }}</strong>
                         @if (tt.description) { <p>{{ tt.description }}</p> }
                         <div class="ticket-price">
-                          @if (tt.price === 0) {
+                          @if (getFlashSale(tt.id); as flash) {
+                            <span class="price-original">{{ tt.price | currency:'BRL' }}</span>
+                            <span class="price price-flash">{{ flash.flashPrice | currency:'BRL' }}</span>
+                            <span class="flash-discount">-{{ flash.discountType === 0 ? flash.discountValue + '%' : (flash.discountValue | currency:'BRL') }}</span>
+                          } @else if (tt.price === 0) {
                             <span class="price-free">GRATUITO</span>
                           } @else {
                             <span class="price">{{ tt.price | currency:'BRL' }}</span>
@@ -92,6 +214,18 @@ interface CartItem {
                           }
                         </mat-select>
                       </mat-form-field>
+                    </div>
+                    <mat-divider />
+                  } @else if (tt.isActive && tt.quantityAvailable === 0) {
+                    <div class="ticket-type sold-out">
+                      <div class="ticket-info">
+                        <strong>{{ tt.name }}</strong>
+                        <span class="sold-out-badge">ESGOTADO</span>
+                      </div>
+                      <button mat-stroked-button color="accent" (click)="joinWaitlist(tt)" [disabled]="joiningWaitlist === tt.id">
+                        @if (joiningWaitlist === tt.id) { <mat-progress-spinner diameter="16" mode="indeterminate" /> }
+                        @else { <mat-icon>hourglass_top</mat-icon> Lista de Espera }
+                      </button>
                     </div>
                     <mat-divider />
                   }
@@ -168,22 +302,124 @@ interface CartItem {
     .buy-btn { height: 48px; font-size: 1rem; }
     .login-hint { text-align: center; font-size: 0.9rem; color: #757575; margin-top: 8px; a { color: #6200ea; } }
     .category-badge { background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; }
+    .social-proof-bar { background: #1a1a2e; color: white; padding: 10px 24px; display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.88rem;
+      span { display: flex; align-items: center; gap: 6px; mat-icon { font-size: 16px; width: 16px; height: 16px; } }
+      .urgency { color: #ff6d00; font-weight: 600; }
+    }
+    .sold-out { opacity: 0.7; }
+    .sold-out-badge { display: inline-block; background: #e53935; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; margin-top: 4px; }
+    .has-flash { border-left: 3px solid #f44336; padding-left: 12px; }
+    .flash-banner { background: #f44336; color: white; padding: 4px 10px; font-size: 0.78rem; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center; border-radius: 4px 4px 0 0; margin: -16px -0px 8px;
+      .flash-countdown { font-family: monospace; font-size: 0.9rem; } }
+    .price-original { text-decoration: line-through; color: #9e9e9e; font-size: 0.9rem; margin-right: 6px; }
+    .price-flash { color: #f44336; font-weight: 700; }
+    .flash-discount { background: #f44336; color: white; font-size: 0.72rem; padding: 1px 6px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
+    .share-section { margin-top: 24px; h3 { font-size: 1rem; font-weight: 700; margin: 0 0 12px; } }
+    .share-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    .share-whatsapp { background: #25d366 !important; color: white !important; border-radius: 8px !important; text-decoration: none; }
+    .share-copy { border-radius: 8px !important; }
+
+    /* Reviews */
+    .reviews-section { margin-top: 32px; h2 { font-size: 1.2rem; font-weight: 800; margin: 0 0 16px; } }
+
+    .reviews-summary {
+      display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;
+      background: var(--surface-2); border-radius: var(--radius-md); padding: 16px;
+    }
+
+    .rating-big {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 100px;
+      .rating-number { font-size: 2.8rem; font-weight: 800; color: var(--primary); line-height: 1; }
+      .rating-count { font-size: 0.78rem; color: var(--text-hint); }
+    }
+
+    .stars-row, .review-stars { display: flex; }
+
+    .star {
+      font-size: 20px; width: 20px; height: 20px; color: #d1d5db;
+      &.filled { color: #f59e0b; }
+      &.sm { font-size: 14px; width: 14px; height: 14px; }
+      &.pick { font-size: 28px; width: 28px; height: 28px; cursor: pointer; transition: color 0.1s;
+               &.hover { color: #fbbf24; } }
+    }
+
+    .rating-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+    .bar-row { display: flex; align-items: center; gap: 6px; font-size: 0.78rem;
+      .bar-label { width: 10px; text-align: right; }
+      .bar-star { font-size: 12px; width: 12px; height: 12px; color: #f59e0b; }
+      .bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+      .bar-fill { height: 100%; background: #f59e0b; border-radius: 3px; transition: width 0.3s; }
+      .bar-count { width: 20px; color: var(--text-hint); }
+    }
+
+    .write-review {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 16px; margin-bottom: 20px;
+      h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 10px; }
+    }
+
+    .star-picker { display: flex; gap: 2px; margin-bottom: 12px; }
+
+    .review-textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      font-family: inherit; font-size: 0.9rem; resize: vertical; margin-bottom: 12px;
+      background: var(--background); color: var(--text-primary);
+      &:focus { outline: none; border-color: var(--border-focus); }
+    }
+
+    .reviews-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .review-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px;
+    }
+
+    .review-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+
+    .review-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--primary);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    }
+
+    .review-date { margin-left: auto; font-size: 0.72rem; color: var(--text-hint); white-space: nowrap; }
+
+    .review-comment { margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
+
+    .no-reviews { color: var(--text-hint); font-size: 0.9rem; }
   `]
 })
-export class EventDetailComponent implements OnInit {
+export class EventDetailComponent implements OnInit, OnDestroy {
   private eventService = inject(EventService);
   private orderService = inject(OrderService);
+  private socialProofService = inject(SocialProofService);
+  private waitlistService = inject(WaitlistService);
+  private flashSaleService = inject(FlashSaleService);
+  private reviewService = inject(ReviewService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
   authService = inject(AuthService);
 
   event: EventResponse | null = null;
+  socialProof: SocialProofResponse | null = null;
+  flashSales: FlashSaleResponse[] = [];
   loading = true;
   buying = false;
+  joiningWaitlist: number | null = null;
   quantities: Record<number, number> = {};
   selectedPaymentMethod = PaymentMethod.Card;
   PaymentMethod = PaymentMethod;
+
+  reviewSummary = signal<EventReviewSummary | null>(null);
+  submittingReview = signal(false);
+  reviewSubmitted = signal(false);
+  newRating = 0;
+  hoverRating = 0;
+  newComment = '';
+
+  private countdownTimer?: ReturnType<typeof setInterval>;
+  countdownTick = 0; // increments every second to trigger change detection
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.params['id']);
@@ -192,10 +428,60 @@ export class EventDetailComponent implements OnInit {
         this.event = event;
         event.ticketTypes.forEach(tt => this.quantities[tt.id] = 0);
         this.loading = false;
+        this.socialProofService.trackView(id).subscribe();
+        this.socialProofService.getSocialProof(id).subscribe({
+          next: (sp) => { this.socialProof = sp; }
+        });
+        this.flashSaleService.getByEvent(id).subscribe({
+          next: (sales) => {
+            this.flashSales = sales;
+            if (sales.length > 0) {
+              this.countdownTimer = setInterval(() => { this.countdownTick++; }, 1000);
+            }
+          }
+        });
+        this.reviewService.getReviews(id).subscribe({
+          next: (summary) => this.reviewSummary.set(summary)
+        });
       },
       error: () => {
         this.loading = false;
         this.router.navigate(['/events']);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+  }
+
+  getFlashSale(ticketTypeId: number): FlashSaleResponse | null {
+    return this.flashSales.find(f => f.ticketTypeId === ticketTypeId && f.isRunning) ?? null;
+  }
+
+  getCountdown(endAt: string): string {
+    void this.countdownTick; // read to trigger re-evaluation
+    const diff = Math.max(0, new Date(endAt).getTime() - Date.now());
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+
+  joinWaitlist(tt: TicketTypeResponse): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.joiningWaitlist = tt.id;
+    this.waitlistService.joinWaitlist({ ticketTypeId: tt.id, quantity: 1 }).subscribe({
+      next: () => {
+        this.joiningWaitlist = null;
+        this.snackBar.open('Você entrou na lista de espera! Avisaremos quando houver vagas.', 'OK', { duration: 5000, panelClass: 'success-snackbar' });
+      },
+      error: (err) => {
+        this.joiningWaitlist = null;
+        this.snackBar.open(err.error?.error || 'Erro ao entrar na fila', 'Fechar', { duration: 3000 });
       }
     });
   }
@@ -217,6 +503,35 @@ export class EventDetailComponent implements OnInit {
 
   getQuantityOptions(max: number): number[] {
     return Array.from({ length: Math.min(max, 10) + 1 }, (_, i) => i);
+  }
+
+  whatsappShareUrl(): string {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(`Confira este evento: ${this.event?.title} — `);
+    return `https://wa.me/?text=${text}${url}`;
+  }
+
+  copyLink(): void {
+    navigator.clipboard.writeText(window.location.href).then(() =>
+      this.snackBar.open('Link copiado!', 'OK', { duration: 2000 })
+    );
+  }
+
+  submitReview(): void {
+    if (this.newRating === 0 || !this.event) return;
+    this.submittingReview.set(true);
+    this.reviewService.createReview(this.event.id, this.newRating, this.newComment || undefined).subscribe({
+      next: () => {
+        this.submittingReview.set(false);
+        this.reviewSubmitted.set(true);
+        this.snackBar.open('Avaliação enviada!', 'OK', { duration: 3000, panelClass: 'success-snackbar' });
+        this.reviewService.getReviews(this.event!.id).subscribe(s => this.reviewSummary.set(s));
+      },
+      error: (err) => {
+        this.submittingReview.set(false);
+        this.snackBar.open(err.error?.error || 'Erro ao enviar avaliação.', 'Fechar', { duration: 3000 });
+      }
+    });
   }
 
   buyTickets(): void {

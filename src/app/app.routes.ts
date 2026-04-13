@@ -44,6 +44,69 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/create-event/create-event.component').then(m => m.CreateEventComponent)
   },
   {
+    path: 'admin/analytics',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/analytics/analytics.component').then(m => m.AnalyticsComponent)
+  },
+  {
+    path: 'admin/affiliates',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/affiliates/affiliates.component').then(m => m.AffiliatesComponent)
+  },
+  {
+    path: 'admin/coupons',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/coupons/coupons.component').then(m => m.CouponsComponent)
+  },
+  {
+    path: 'my-waitlist',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/my-waitlist/my-waitlist.component').then(m => m.MyWaitlistComponent)
+  },
+  {
+    path: 'loyalty',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/loyalty/loyalty.component').then(m => m.LoyaltyComponent)
+  },
+  {
+    path: 'resale',
+    loadComponent: () => import('./features/resale/resale.component').then(m => m.ResaleComponent)
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
+    path: 'pay/:token',
+    loadComponent: () => import('./features/pay/pay.component').then(m => m.PayComponent)
+  },
+  {
+    path: 'ticket-transfers',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/ticket-transfers/ticket-transfers.component').then(m => m.TicketTransfersComponent)
+  },
+  {
+    path: 'admin/payment-links',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/payment-links/payment-links.component').then(m => m.PaymentLinksComponent)
+  },
+  {
+    path: 'admin/flash-sales',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/flash-sales/flash-sales.component').then(m => m.FlashSalesComponent)
+  },
+  {
+    path: 'admin/my-events',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/my-events/my-events.component').then(m => m.MyEventsComponent)
+  },
+  {
+    path: 'admin/scan',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/scan/scan.component').then(m => m.ScanComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }
