@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +17,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { SocialProofService } from '../../../core/services/social-proof.service';
 import { WaitlistService } from '../../../core/services/waitlist.service';
 import { FlashSaleService } from '../../../core/services/flash-sale.service';
+import { ReviewService, EventReviewSummary } from '../../../core/services/review.service';
 import { EventResponse, TicketTypeResponse, PaymentMethod, OrderItemRequest, SocialProofResponse, FlashSaleResponse } from '../../../core/models';
 
 interface CartItem {
@@ -90,6 +91,86 @@ interface CartItem {
                   <mat-icon>link</mat-icon> Copiar link
                 </button>
               </div>
+            </div>
+
+            <!-- Reviews section -->
+            <div class="reviews-section">
+              <h2>Avaliações</h2>
+
+              @if (reviewSummary()) {
+                <div class="reviews-summary">
+                  <div class="rating-big">
+                    <span class="rating-number">{{ reviewSummary()!.averageRating | number:'1.1-1' }}</span>
+                    <div class="stars-row">
+                      @for (s of [1,2,3,4,5]; track s) {
+                        <mat-icon class="star" [class.filled]="s <= reviewSummary()!.averageRating">star</mat-icon>
+                      }
+                    </div>
+                    <span class="rating-count">{{ reviewSummary()!.totalReviews }} avaliações</span>
+                  </div>
+                  <div class="rating-bars">
+                    @for (star of [5,4,3,2,1]; track star) {
+                      <div class="bar-row">
+                        <span class="bar-label">{{ star }}</span>
+                        <mat-icon class="bar-star">star</mat-icon>
+                        <div class="bar-track">
+                          <div class="bar-fill"
+                               [style.width.%]="reviewSummary()!.totalReviews > 0
+                                 ? (reviewSummary()!.ratingDistribution[star] || 0) / reviewSummary()!.totalReviews * 100
+                                 : 0">
+                          </div>
+                        </div>
+                        <span class="bar-count">{{ reviewSummary()!.ratingDistribution[star] || 0 }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Write review form -->
+                @if (authService.isAuthenticated() && !reviewSubmitted()) {
+                  <div class="write-review">
+                    <h3>Deixar avaliação</h3>
+                    <div class="star-picker">
+                      @for (s of [1,2,3,4,5]; track s) {
+                        <mat-icon class="star pick" [class.filled]="s <= newRating"
+                                  (click)="newRating = s" (mouseover)="hoverRating = s"
+                                  (mouseleave)="hoverRating = 0"
+                                  [class.hover]="s <= hoverRating">star</mat-icon>
+                      }
+                    </div>
+                    <textarea class="review-textarea" [(ngModel)]="newComment"
+                              placeholder="Conta como foi o evento (opcional)..." rows="3"></textarea>
+                    <button mat-raised-button color="primary" (click)="submitReview()"
+                            [disabled]="newRating === 0 || submittingReview()">
+                      @if (submittingReview()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+                      @else { <mat-icon>send</mat-icon> Enviar }
+                    </button>
+                  </div>
+                }
+
+                <!-- Review list -->
+                <div class="reviews-list">
+                  @for (r of reviewSummary()!.reviews; track r.id) {
+                    <div class="review-item">
+                      <div class="review-header">
+                        <div class="review-avatar">{{ r.userName.charAt(0).toUpperCase() }}</div>
+                        <div>
+                          <strong>{{ r.userName }}</strong>
+                          <div class="review-stars">
+                            @for (s of [1,2,3,4,5]; track s) {
+                              <mat-icon class="star sm" [class.filled]="s <= r.rating">star</mat-icon>
+                            }
+                          </div>
+                        </div>
+                        <small class="review-date">{{ r.createdAt | date:'dd/MM/yyyy' }}</small>
+                      </div>
+                      @if (r.comment) { <p class="review-comment">{{ r.comment }}</p> }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="no-reviews">Nenhuma avaliação ainda. Seja o primeiro!</p>
+              }
             </div>
           </div>
 
@@ -238,6 +319,74 @@ interface CartItem {
     .share-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
     .share-whatsapp { background: #25d366 !important; color: white !important; border-radius: 8px !important; text-decoration: none; }
     .share-copy { border-radius: 8px !important; }
+
+    /* Reviews */
+    .reviews-section { margin-top: 32px; h2 { font-size: 1.2rem; font-weight: 800; margin: 0 0 16px; } }
+
+    .reviews-summary {
+      display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;
+      background: var(--surface-2); border-radius: var(--radius-md); padding: 16px;
+    }
+
+    .rating-big {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 100px;
+      .rating-number { font-size: 2.8rem; font-weight: 800; color: var(--primary); line-height: 1; }
+      .rating-count { font-size: 0.78rem; color: var(--text-hint); }
+    }
+
+    .stars-row, .review-stars { display: flex; }
+
+    .star {
+      font-size: 20px; width: 20px; height: 20px; color: #d1d5db;
+      &.filled { color: #f59e0b; }
+      &.sm { font-size: 14px; width: 14px; height: 14px; }
+      &.pick { font-size: 28px; width: 28px; height: 28px; cursor: pointer; transition: color 0.1s;
+               &.hover { color: #fbbf24; } }
+    }
+
+    .rating-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+    .bar-row { display: flex; align-items: center; gap: 6px; font-size: 0.78rem;
+      .bar-label { width: 10px; text-align: right; }
+      .bar-star { font-size: 12px; width: 12px; height: 12px; color: #f59e0b; }
+      .bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+      .bar-fill { height: 100%; background: #f59e0b; border-radius: 3px; transition: width 0.3s; }
+      .bar-count { width: 20px; color: var(--text-hint); }
+    }
+
+    .write-review {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 16px; margin-bottom: 20px;
+      h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 10px; }
+    }
+
+    .star-picker { display: flex; gap: 2px; margin-bottom: 12px; }
+
+    .review-textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      font-family: inherit; font-size: 0.9rem; resize: vertical; margin-bottom: 12px;
+      background: var(--background); color: var(--text-primary);
+      &:focus { outline: none; border-color: var(--border-focus); }
+    }
+
+    .reviews-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .review-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px;
+    }
+
+    .review-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+
+    .review-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--primary);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    }
+
+    .review-date { margin-left: auto; font-size: 0.72rem; color: var(--text-hint); white-space: nowrap; }
+
+    .review-comment { margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
+
+    .no-reviews { color: var(--text-hint); font-size: 0.9rem; }
   `]
 })
 export class EventDetailComponent implements OnInit, OnDestroy {
@@ -246,6 +395,7 @@ export class EventDetailComponent implements OnInit, OnDestroy {
   private socialProofService = inject(SocialProofService);
   private waitlistService = inject(WaitlistService);
   private flashSaleService = inject(FlashSaleService);
+  private reviewService = inject(ReviewService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
@@ -260,6 +410,13 @@ export class EventDetailComponent implements OnInit, OnDestroy {
   quantities: Record<number, number> = {};
   selectedPaymentMethod = PaymentMethod.Card;
   PaymentMethod = PaymentMethod;
+
+  reviewSummary = signal<EventReviewSummary | null>(null);
+  submittingReview = signal(false);
+  reviewSubmitted = signal(false);
+  newRating = 0;
+  hoverRating = 0;
+  newComment = '';
 
   private countdownTimer?: ReturnType<typeof setInterval>;
   countdownTick = 0; // increments every second to trigger change detection
@@ -282,6 +439,9 @@ export class EventDetailComponent implements OnInit, OnDestroy {
               this.countdownTimer = setInterval(() => { this.countdownTick++; }, 1000);
             }
           }
+        });
+        this.reviewService.getReviews(id).subscribe({
+          next: (summary) => this.reviewSummary.set(summary)
         });
       },
       error: () => {
@@ -355,6 +515,23 @@ export class EventDetailComponent implements OnInit, OnDestroy {
     navigator.clipboard.writeText(window.location.href).then(() =>
       this.snackBar.open('Link copiado!', 'OK', { duration: 2000 })
     );
+  }
+
+  submitReview(): void {
+    if (this.newRating === 0 || !this.event) return;
+    this.submittingReview.set(true);
+    this.reviewService.createReview(this.event.id, this.newRating, this.newComment || undefined).subscribe({
+      next: () => {
+        this.submittingReview.set(false);
+        this.reviewSubmitted.set(true);
+        this.snackBar.open('Avaliação enviada!', 'OK', { duration: 3000, panelClass: 'success-snackbar' });
+        this.reviewService.getReviews(this.event!.id).subscribe(s => this.reviewSummary.set(s));
+      },
+      error: (err) => {
+        this.submittingReview.set(false);
+        this.snackBar.open(err.error?.error || 'Erro ao enviar avaliação.', 'Fechar', { duration: 3000 });
+      }
+    });
   }
 
   buyTickets(): void {

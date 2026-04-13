@@ -1,4 +1,4 @@
-import { Component, inject, HostListener, signal } from '@angular/core';
+import { Component, inject, HostListener, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,8 +7,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService, AppNotification } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-navbar',
@@ -16,7 +19,8 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [
     CommonModule, RouterLink, RouterLinkActive,
     MatToolbarModule, MatButtonModule, MatIconModule,
-    MatMenuModule, MatDividerModule, MatSidenavModule, MatListModule
+    MatMenuModule, MatDividerModule, MatSidenavModule,
+    MatListModule, MatBadgeModule, MatTooltipModule
   ],
   template: `
     <!-- Mobile drawer -->
@@ -71,6 +75,14 @@ import { AuthService } from '../../core/services/auth.service';
                 <mat-icon matListItemIcon>dashboard</mat-icon>
                 <span matListItemTitle>Painel do Organizador</span>
               </a>
+              <a mat-list-item routerLink="/admin/my-events" (click)="drawerOpen.set(false)">
+                <mat-icon matListItemIcon>event_note</mat-icon>
+                <span matListItemTitle>Meus Eventos</span>
+              </a>
+              <a mat-list-item routerLink="/admin/scan" (click)="drawerOpen.set(false)">
+                <mat-icon matListItemIcon>qr_code_scanner</mat-icon>
+                <span matListItemTitle>Validar QR</span>
+              </a>
               <a mat-list-item routerLink="/admin/payment-links" (click)="drawerOpen.set(false)">
                 <mat-icon matListItemIcon>add_link</mat-icon>
                 <span matListItemTitle>Links de Pagamento</span>
@@ -82,6 +94,12 @@ import { AuthService } from '../../core/services/auth.service';
             }
 
             <mat-divider />
+            <!-- Dark mode toggle in drawer -->
+            <mat-list-item (click)="toggleDarkMode()">
+              <mat-icon matListItemIcon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+              <span matListItemTitle>{{ darkMode() ? 'Modo Claro' : 'Modo Escuro' }}</span>
+            </mat-list-item>
+
             <a mat-list-item (click)="logout(); drawerOpen.set(false)">
               <mat-icon matListItemIcon color="warn">logout</mat-icon>
               <span matListItemTitle>Sair</span>
@@ -124,6 +142,10 @@ import { AuthService } from '../../core/services/auth.service';
 
           @if (!authService.isAuthenticated()) {
             <div class="auth-buttons desktop-nav">
+              <!-- Dark mode toggle -->
+              <button mat-icon-button (click)="toggleDarkMode()" class="icon-btn" matTooltip="Alternar tema">
+                <mat-icon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+              </button>
               <a mat-button routerLink="/login">Entrar</a>
               <a mat-raised-button color="primary" routerLink="/register" class="register-btn">
                 Criar Conta
@@ -139,6 +161,55 @@ import { AuthService } from '../../core/services/auth.service';
                   <mat-icon>dashboard</mat-icon> Painel
                 </a>
               }
+
+              <!-- Dark mode toggle -->
+              <button mat-icon-button (click)="toggleDarkMode()" class="icon-btn" matTooltip="Alternar tema">
+                <mat-icon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+              </button>
+
+              <!-- Notification bell -->
+              <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="icon-btn notif-btn"
+                      (menuOpened)="loadNotifications()">
+                <mat-icon
+                  [matBadge]="notificationService.unreadCount() || null"
+                  matBadgeColor="warn"
+                  matBadgeSize="small">
+                  notifications
+                </mat-icon>
+              </button>
+              <mat-menu #notifMenu="matMenu" class="notif-menu">
+                <div class="notif-header" (click)="$event.stopPropagation()">
+                  <span>Notificações</span>
+                  @if (notificationService.unreadCount() > 0) {
+                    <button mat-button color="primary" (click)="markAllRead()">
+                      Marcar todas como lidas
+                    </button>
+                  }
+                </div>
+                <mat-divider />
+                @if (notifications().length === 0) {
+                  <div class="notif-empty">
+                    <mat-icon>notifications_none</mat-icon>
+                    <p>Sem notificações</p>
+                  </div>
+                } @else {
+                  @for (n of notifications(); track n.id) {
+                    <div class="notif-item" [class.unread]="!n.isRead" (click)="markRead(n)">
+                      <mat-icon class="notif-type-icon" [class]="'notif-' + n.type">
+                        {{ getNotifIcon(n.type) }}
+                      </mat-icon>
+                      <div class="notif-content">
+                        <strong>{{ n.title }}</strong>
+                        <p>{{ n.message }}</p>
+                        <small>{{ n.createdAt | date:'dd/MM HH:mm' }}</small>
+                      </div>
+                      @if (!n.isRead) { <span class="unread-dot"></span> }
+                    </div>
+                  }
+                }
+              </mat-menu>
+
+              <!-- Avatar + user menu -->
               <button mat-icon-button [matMenuTriggerFor]="userMenu" class="avatar-btn">
                 <div class="avatar">{{ getInitial() }}</div>
               </button>
@@ -168,6 +239,12 @@ import { AuthService } from '../../core/services/auth.service';
                 </a>
                 @if (authService.isOrganizer()) {
                   <mat-divider />
+                  <a mat-menu-item routerLink="/admin/my-events">
+                    <mat-icon>event_note</mat-icon> Meus Eventos
+                  </a>
+                  <a mat-menu-item routerLink="/admin/scan">
+                    <mat-icon>qr_code_scanner</mat-icon> Validar QR
+                  </a>
                   <a mat-menu-item routerLink="/admin/analytics">
                     <mat-icon>bar_chart</mat-icon> Analytics
                   </a>
@@ -287,6 +364,83 @@ import { AuthService } from '../../core/services/auth.service';
       margin-left: 4px !important;
     }
 
+    /* ── Icon buttons (dark mode / notif) ── */
+    .icon-btn {
+      color: rgba(255,255,255,.9) !important;
+    }
+
+    /* ── Notification bell badge ── */
+    .notif-btn {
+      position: relative;
+    }
+
+    /* ── Notification menu ── */
+    .notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px 4px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      min-width: 320px;
+    }
+
+    .notif-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      color: #9ca3af;
+      gap: 8px;
+      mat-icon { font-size: 40px; width: 40px; height: 40px; }
+      p { margin: 0; font-size: 0.85rem; }
+    }
+
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      max-width: 360px;
+
+      &:hover { background: rgba(0,0,0,.04); }
+      &.unread { background: rgba(98,0,234,.04); }
+    }
+
+    .notif-type-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      flex-shrink: 0;
+
+      &.notif-info    { color: #0288d1; }
+      &.notif-success { color: #43a047; }
+      &.notif-warning { color: #f57f17; }
+      &.notif-error   { color: #e53935; }
+    }
+
+    .notif-content {
+      flex: 1;
+      min-width: 0;
+
+      strong { display: block; font-size: 0.82rem; font-weight: 700; }
+      p      { margin: 2px 0 0; font-size: 0.78rem; color: #6b7280; white-space: normal; line-height: 1.4; }
+      small  { color: #9ca3af; font-size: 0.7rem; }
+    }
+
+    .unread-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
     /* ── Avatar button ── */
     .avatar-btn { padding: 0 !important; }
 
@@ -361,14 +515,74 @@ import { AuthService } from '../../core/services/auth.service';
     .drawer-nav { padding-top: 8px; }
   `]
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   authService = inject(AuthService);
+  notificationService = inject(NotificationService);
+
   drawerOpen = signal(false);
   scrolled = signal(false);
+  darkMode = signal(false);
+  notifications = signal<AppNotification[]>([]);
 
   @HostListener('window:scroll')
   onScroll(): void {
     this.scrolled.set(window.scrollY > 20);
+  }
+
+  ngOnInit(): void {
+    // Restore dark mode preference
+    const saved = localStorage.getItem('darkMode');
+    if (saved === 'true') {
+      this.darkMode.set(true);
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    // Load unread count if authenticated
+    if (this.authService.isAuthenticated()) {
+      this.notificationService.getUnreadCount().subscribe();
+    }
+  }
+
+  toggleDarkMode(): void {
+    const next = !this.darkMode();
+    this.darkMode.set(next);
+    if (next) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem('darkMode', String(next));
+  }
+
+  loadNotifications(): void {
+    this.notificationService.getNotifications().subscribe(list => {
+      this.notifications.set(list.slice(0, 10));
+    });
+  }
+
+  markRead(n: AppNotification): void {
+    if (n.isRead) return;
+    this.notificationService.markAsRead(n.id).subscribe(() => {
+      this.notifications.update(list =>
+        list.map(item => item.id === n.id ? { ...item, isRead: true } : item)
+      );
+    });
+  }
+
+  markAllRead(): void {
+    this.notificationService.markAllAsRead().subscribe(() => {
+      this.notifications.update(list => list.map(item => ({ ...item, isRead: true })));
+    });
+  }
+
+  getNotifIcon(type: string): string {
+    const map: Record<string, string> = {
+      info: 'info',
+      success: 'check_circle',
+      warning: 'warning',
+      error: 'error'
+    };
+    return map[type] ?? 'notifications';
   }
 
   getInitial(): string {

@@ -97,6 +97,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/flash-sales/flash-sales.component').then(m => m.FlashSalesComponent)
   },
   {
+    path: 'admin/my-events',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/my-events/my-events.component').then(m => m.MyEventsComponent)
+  },
+  {
+    path: 'admin/scan',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/scan/scan.component').then(m => m.ScanComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }
