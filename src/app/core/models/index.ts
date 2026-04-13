@@ -134,6 +134,7 @@ export interface OrderResponse {
   totalAmount: number;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
+  stripePaymentIntentId?: string;
   stripeClientSecret?: string;
   createdAt: string;
   paidAt?: string;

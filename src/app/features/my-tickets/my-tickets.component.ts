@@ -1,12 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TicketService } from '../../core/services/ticket.service';
 import { TicketResponse } from '../../core/models';
 
@@ -14,124 +12,450 @@ import { TicketResponse } from '../../core/models';
   selector: 'app-my-tickets',
   standalone: true,
   imports: [
-    CommonModule, MatButtonModule, MatCardModule, MatIconModule,
-    MatProgressSpinnerModule, MatChipsModule, MatDialogModule, MatDividerModule
+    CommonModule, RouterLink,
+    MatButtonModule, MatIconModule,
+    MatProgressSpinnerModule, MatSnackBarModule
   ],
   template: `
-    <div class="container page-container">
-      <h1 class="section-title">Meus Ingressos</h1>
-
-      @if (loading) {
-        <div class="loading-overlay"><mat-progress-spinner mode="indeterminate" /></div>
-      } @else if (tickets.length === 0) {
-        <div class="empty-state">
-          <mat-icon>confirmation_number</mat-icon>
-          <h2>Nenhum ingresso encontrado</h2>
-          <p>Você ainda não comprou ingressos. Que tal explorar os eventos disponíveis?</p>
-          <a mat-raised-button color="primary" routerLink="/events">Ver Eventos</a>
+    <div class="tickets-page">
+      <!-- Header -->
+      <div class="page-hero">
+        <div class="container">
+          <div class="hero-content">
+            <div>
+              <h1 class="page-title">Meus Ingressos</h1>
+              <p class="page-subtitle">{{ tickets.length }} ingresso{{ tickets.length !== 1 ? 's' : '' }} na sua carteira</p>
+            </div>
+            <a mat-stroked-button routerLink="/events" class="browse-btn">
+              <mat-icon>add</mat-icon> Comprar mais
+            </a>
+          </div>
         </div>
-      } @else {
-        <div class="tickets-grid">
-          @for (ticket of tickets; track ticket.id) {
-            <mat-card class="ticket-card" [class.used-ticket]="ticket.isUsed">
-              <mat-card-header>
-                <mat-card-title>{{ ticket.eventTitle }}</mat-card-title>
-                <mat-card-subtitle>{{ ticket.ticketTypeName }}</mat-card-subtitle>
-                <mat-chip-set>
-                  @if (ticket.isUsed) {
-                    <mat-chip color="warn">Utilizado</mat-chip>
-                  } @else {
-                    <mat-chip color="primary">Válido</mat-chip>
-                  }
-                </mat-chip-set>
-              </mat-card-header>
+      </div>
 
-              <mat-card-content>
-                <!-- QR Code -->
-                <div class="qr-code-container">
-                  <img [src]="'data:image/png;base64,' + ticket.qrCodeBase64"
-                       [alt]="'QR Code ' + ticket.serialNumber"
-                       class="qr-code-image"
-                       [class.qr-used]="ticket.isUsed">
-                  @if (ticket.isUsed) {
-                    <div class="used-overlay">
-                      <mat-icon>check_circle</mat-icon>
-                      <span>UTILIZADO</span>
+      <div class="container">
+        @if (loading) {
+          <div class="skeleton-list">
+            @for (n of [1,2,3]; track n) {
+              <div class="skeleton-ticket">
+                <div class="sk-left"></div>
+                <div class="sk-right"></div>
+              </div>
+            }
+          </div>
+        } @else if (tickets.length === 0) {
+          <div class="empty-state fade-in">
+            <mat-icon class="empty-icon">confirmation_number</mat-icon>
+            <h2>Carteira vazia</h2>
+            <p>Você ainda não comprou ingressos. Explore os eventos disponíveis!</p>
+            <a mat-raised-button color="primary" routerLink="/events">
+              <mat-icon>search</mat-icon> Ver Eventos
+            </a>
+          </div>
+        } @else {
+          <!-- Tabs: valid / used -->
+          <div class="tab-row">
+            <button class="tab-btn" [class.active]="activeTab === 'valid'" (click)="activeTab = 'valid'">
+              Válidos ({{ validTickets.length }})
+            </button>
+            <button class="tab-btn" [class.active]="activeTab === 'used'" (click)="activeTab = 'used'">
+              Utilizados ({{ usedTickets.length }})
+            </button>
+          </div>
+
+          <div class="tickets-list fade-in">
+            @for (ticket of displayedTickets; track ticket.id) {
+              <div class="wallet-card" [class.used]="ticket.isUsed">
+                <!-- Torn edge decoration -->
+                <div class="tear-line">
+                  <div class="tear-circle left"></div>
+                  <div class="tear-dots"></div>
+                  <div class="tear-circle right"></div>
+                </div>
+
+                <!-- Left: event info -->
+                <div class="card-left">
+                  <div class="event-color-bar" [style.background]="getCategoryColor(ticket.eventTitle)"></div>
+                  <div class="card-left-content">
+                    <span class="event-category-label">INGRESSO</span>
+                    <h3 class="event-title-card">{{ ticket.eventTitle }}</h3>
+                    <p class="ticket-type-name">{{ ticket.ticketTypeName }}</p>
+
+                    <div class="info-rows">
+                      <div class="info-row">
+                        <mat-icon>calendar_today</mat-icon>
+                        <span>{{ ticket.eventDateTime | date:'EEE, dd MMM yyyy':'':'pt-BR' }}</span>
+                      </div>
+                      <div class="info-row">
+                        <mat-icon>schedule</mat-icon>
+                        <span>{{ ticket.eventDateTime | date:'HH:mm' }}</span>
+                      </div>
+                      <div class="info-row">
+                        <mat-icon>location_on</mat-icon>
+                        <span>{{ ticket.eventVenue }}, {{ ticket.eventCity }}</span>
+                      </div>
                     </div>
+
+                    <div class="card-actions">
+                      <button mat-stroked-button class="action-btn" (click)="downloadQRCode(ticket)">
+                        <mat-icon>download</mat-icon> Salvar
+                      </button>
+                      <a mat-stroked-button class="action-btn" routerLink="/ticket-transfers">
+                        <mat-icon>swap_horiz</mat-icon> Transferir
+                      </a>
+                      <button mat-icon-button class="share-btn" (click)="shareTicket(ticket)" title="Compartilhar">
+                        <mat-icon>share</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: QR code stub -->
+                <div class="card-right">
+                  <div class="qr-wrap">
+                    <img [src]="'data:image/png;base64,' + ticket.qrCodeBase64"
+                         [alt]="ticket.serialNumber"
+                         class="qr-img"
+                         [class.qr-used]="ticket.isUsed">
+                    @if (ticket.isUsed) {
+                      <div class="used-stamp">
+                        <mat-icon>check_circle</mat-icon>
+                        <span>USADO</span>
+                      </div>
+                    }
+                  </div>
+                  <p class="serial-number">{{ ticket.serialNumber }}</p>
+                  <div class="price-tag">{{ ticket.unitPrice | currency:'BRL' }}</div>
+                  @if (ticket.isUsed && ticket.usedAt) {
+                    <p class="used-date">{{ ticket.usedAt | date:'dd/MM/yy HH:mm' }}</p>
                   }
                 </div>
-
-                <mat-divider />
-
-                <div class="ticket-details">
-                  <div class="detail-row">
-                    <mat-icon>calendar_today</mat-icon>
-                    <span>{{ ticket.eventDateTime | date:'dd/MM/yyyy - HH:mm' }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <mat-icon>location_on</mat-icon>
-                    <span>{{ ticket.eventVenue }}, {{ ticket.eventCity }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <mat-icon>confirmation_number</mat-icon>
-                    <span class="serial">{{ ticket.serialNumber }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <mat-icon>attach_money</mat-icon>
-                    <span>{{ ticket.unitPrice | currency:'BRL' }}</span>
-                  </div>
-                </div>
-
-                @if (ticket.isUsed && ticket.usedAt) {
-                  <p class="used-info">Utilizado em {{ ticket.usedAt | date:'dd/MM/yyyy HH:mm' }}</p>
-                }
-              </mat-card-content>
-
-              <mat-card-actions>
-                <button mat-button (click)="downloadQRCode(ticket)">
-                  <mat-icon>download</mat-icon> Salvar QR Code
-                </button>
-              </mat-card-actions>
-            </mat-card>
-          }
-        </div>
-      }
+              </div>
+            }
+          </div>
+        }
+      </div>
     </div>
   `,
   styles: [`
-    .page-container { padding: 32px 16px; }
-    .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-    .ticket-card { position: relative; }
-    .used-ticket { opacity: 0.7; }
-    .qr-code-container { position: relative; display: flex; justify-content: center; padding: 16px 0; }
-    .qr-code-image { width: 220px; height: 220px; border: 2px solid #e0e0e0; border-radius: 8px; }
+    /* ── Page hero ── */
+    .tickets-page { padding-top: 64px; }
+
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      padding: 40px 0 32px;
+    }
+
+    .hero-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 800;
+      color: white;
+      margin: 0 0 4px;
+    }
+
+    .page-subtitle { color: rgba(255,255,255,.75); margin: 0; }
+
+    .browse-btn {
+      color: white !important;
+      border-color: rgba(255,255,255,.5) !important;
+      border-radius: 8px !important;
+    }
+
+    /* ── Tabs ── */
+    .tab-row {
+      display: flex;
+      gap: 4px;
+      margin: 28px 0 20px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      width: fit-content;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+
+      &.active {
+        background: var(--surface);
+        color: var(--primary);
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+      }
+    }
+
+    /* ── Wallet card ── */
+    .tickets-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding-bottom: 48px;
+    }
+
+    .wallet-card {
+      display: flex;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      position: relative;
+      transition: box-shadow var(--transition), transform var(--transition);
+      min-height: 200px;
+
+      &:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+      &.used { opacity: 0.75; }
+
+      @media (max-width: 580px) { flex-direction: column; }
+    }
+
+    /* Torn tear line */
+    .tear-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 200px;
+      width: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 2;
+      pointer-events: none;
+
+      @media (max-width: 580px) {
+        top: auto;
+        bottom: 220px;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 1px;
+        flex-direction: row;
+      }
+    }
+
+    .tear-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--background);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      &.left  { margin-left: -10px; @media (max-width: 580px) { margin-left: 0; margin-top: -10px; } }
+      &.right { margin-left: -10px; @media (max-width: 580px) { margin-left: 0; margin-top: -10px; } }
+    }
+
+    .tear-dots {
+      flex: 1;
+      border-left: 2px dashed var(--border);
+      @media (max-width: 580px) { border-left: none; border-top: 2px dashed var(--border); width: 100%; height: 0; flex: 1; }
+    }
+
+    /* ── Left section ── */
+    .card-left {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .event-color-bar {
+      width: 6px;
+      flex-shrink: 0;
+    }
+
+    .card-left-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .event-category-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--text-hint);
+      text-transform: uppercase;
+    }
+
+    .event-title-card {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    .ticket-type-name {
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .info-rows { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      mat-icon { font-size: 14px; width: 14px; height: 14px; color: var(--text-hint); }
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      height: 32px !important;
+      font-size: 0.78rem !important;
+      padding: 0 10px !important;
+      border-radius: 6px !important;
+      line-height: 30px !important;
+    }
+
+    .share-btn { width: 32px !important; height: 32px !important; }
+
+    /* ── Right section (QR stub) ── */
+    .card-right {
+      width: 200px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px 16px;
+      background: var(--surface-2);
+
+      @media (max-width: 580px) { width: 100%; padding: 20px; }
+    }
+
+    .qr-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-img {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      object-fit: contain;
+    }
+
     .qr-used { filter: grayscale(80%); }
-    .used-overlay { position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; background: rgba(0,0,0,0.4); border-radius: 8px; color: white;
-      mat-icon { font-size: 48px; width: 48px; height: 48px; color: #43a047; }
-      span { font-weight: 700; font-size: 1.2rem; } }
-    .ticket-details { padding: 16px 0; }
-    .detail-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: #616161;
-      mat-icon { font-size: 18px; width: 18px; height: 18px; color: #9e9e9e; } }
-    .serial { font-family: monospace; font-size: 0.85rem; }
-    .used-info { color: #e53935; font-size: 0.85rem; text-align: center; }
-    .empty-state { text-align: center; padding: 64px;
-      mat-icon { font-size: 80px; width: 80px; height: 80px; color: #bdbdbd; display: block; margin: 0 auto 16px; }
-      h2 { margin-bottom: 8px; } p { color: #757575; margin-bottom: 24px; } }
+
+    .used-stamp {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      gap: 2px;
+      mat-icon { font-size: 32px; width: 32px; height: 32px; color: #69f0ae; }
+      span { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; }
+    }
+
+    .serial-number {
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      color: var(--text-hint);
+      margin: 0;
+      text-align: center;
+      word-break: break-all;
+    }
+
+    .price-tag {
+      background: var(--primary);
+      color: white;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .used-date {
+      font-size: 0.7rem;
+      color: var(--text-hint);
+      margin: 0;
+      text-align: center;
+    }
+
+    /* ── Skeleton ── */
+    .skeleton-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 28px;
+    }
+
+    .skeleton-ticket {
+      display: flex;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      height: 200px;
+      border: 1px solid var(--border);
+    }
+
+    .sk-left {
+      flex: 1;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 400% 100%;
+      animation: skeleton-shimmer 1.4s ease infinite;
+    }
+
+    .sk-right {
+      width: 200px;
+      background: linear-gradient(90deg, #ebebeb 25%, #f5f5f5 50%, #ebebeb 75%);
+      background-size: 400% 100%;
+      animation: skeleton-shimmer 1.4s .2s ease infinite;
+    }
   `]
 })
 export class MyTicketsComponent implements OnInit {
   private ticketService = inject(TicketService);
+  private snackBar = inject(MatSnackBar);
 
   tickets: TicketResponse[] = [];
   loading = true;
+  activeTab: 'valid' | 'used' = 'valid';
+
+  get validTickets() { return this.tickets.filter(t => !t.isUsed); }
+  get usedTickets()  { return this.tickets.filter(t => t.isUsed); }
+  get displayedTickets() { return this.activeTab === 'valid' ? this.validTickets : this.usedTickets; }
 
   ngOnInit(): void {
     this.ticketService.getMyTickets().subscribe({
-      next: (tickets) => {
-        this.tickets = tickets;
-        this.loading = false;
-      },
+      next: (tickets) => { this.tickets = tickets; this.loading = false; },
       error: () => { this.loading = false; }
     });
   }
@@ -141,5 +465,23 @@ export class MyTicketsComponent implements OnInit {
     link.href = `data:image/png;base64,${ticket.qrCodeBase64}`;
     link.download = `ingresso-${ticket.serialNumber}.png`;
     link.click();
+  }
+
+  shareTicket(ticket: TicketResponse): void {
+    const text = `Meu ingresso para ${ticket.eventTitle} — ${ticket.serialNumber}`;
+    if (navigator.share) {
+      navigator.share({ title: ticket.eventTitle, text });
+    } else {
+      navigator.clipboard.writeText(text).then(() =>
+        this.snackBar.open('Informações copiadas!', 'OK', { duration: 2000 })
+      );
+    }
+  }
+
+  getCategoryColor(title: string): string {
+    const colors = ['#6200ea','#e91e63','#ff6d00','#00bcd4','#43a047','#f44336'];
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
   }
 }

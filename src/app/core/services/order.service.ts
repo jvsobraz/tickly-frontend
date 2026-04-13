@@ -24,4 +24,8 @@ export class OrderService {
   cancelOrder(id: number): Observable<void> {
     return this.http.post<void>(`${this.BASE_URL}/${id}/cancel`, {});
   }
+
+  confirmOrder(id: number): Observable<void> {
+    return this.http.post<void>(`${this.BASE_URL}/${id}/confirm`, {});
+  }
 }
