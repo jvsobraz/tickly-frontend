@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/core/services/ticket.service.ts"],
-  "sourcesContent": ["import { Injectable } from '@angular/core';\nimport { HttpClient } from '@angular/common/http';\nimport { Observable } from 'rxjs';\nimport { TicketResponse, ValidateTicketRequest, ValidateTicketResponse } from '../models';\n\n@Injectable({ providedIn: 'root' })\nexport class TicketService {\n  private readonly BASE_URL = '/Tickets';\n\n  constructor(private http: HttpClient) {}\n\n  getMyTickets(): Observable<TicketResponse[]> {\n    return this.http.get<TicketResponse[]>(`${this.BASE_URL}/my-tickets`);\n  }\n\n  getTicketById(id: number): Observable<TicketResponse> {\n    return this.http.get<TicketResponse>(`${this.BASE_URL}/${id}`);\n  }\n\n  validateTicket(request: ValidateTicketRequest): Observable<ValidateTicketResponse> {\n    return this.http.post<ValidateTicketResponse>(`${this.BASE_URL}/validate`, request);\n  }\n}\n"],
-  "mappings": ";;;;;;;;;AAMM,IAAO,gBAAP,MAAO,eAAa;EAGxB,YAAoB,MAAgB;AAAhB,SAAA,OAAA;AAFH,SAAA,WAAW;EAEW;EAEvC,eAAY;AACV,WAAO,KAAK,KAAK,IAAsB,GAAG,KAAK,QAAQ,aAAa;EACtE;EAEA,cAAc,IAAU;AACtB,WAAO,KAAK,KAAK,IAAoB,GAAG,KAAK,QAAQ,IAAI,EAAE,EAAE;EAC/D;EAEA,eAAe,SAA8B;AAC3C,WAAO,KAAK,KAAK,KAA6B,GAAG,KAAK,QAAQ,aAAa,OAAO;EACpF;;;uBAfW,gBAAa,mBAAA,UAAA,CAAA;IAAA;EAAA;;4EAAb,gBAAa,SAAb,eAAa,WAAA,YADA,OAAM,CAAA;EAAA;;",
-  "names": []
-}
