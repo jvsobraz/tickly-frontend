@@ -64,6 +64,7 @@ import { AuthService } from '../../../core/services/auth.service';
         </mat-card-content>
 
         <mat-card-actions>
+          <p class="auth-link forgot"><a routerLink="/forgot-password">Esqueceu sua senha?</a></p>
           <p class="auth-link">Não tem conta? <a routerLink="/register">Cadastre-se grátis</a></p>
         </mat-card-actions>
       </mat-card>
@@ -74,7 +75,8 @@ import { AuthService } from '../../../core/services/auth.service';
     .auth-card { width: 100%; max-width: 420px; padding: 16px; }
     mat-form-field { margin-bottom: 8px; }
     .submit-btn { height: 48px; font-size: 1rem; margin-top: 8px; }
-    .auth-link { text-align: center; color: #757575; a { color: #6200ea; } }
+    .auth-link { text-align: center; color: #757575; a { color: #6200ea; text-decoration: none; } }
+    .forgot { margin-bottom: 0; }
   `]
 })
 export class LoginComponent {
