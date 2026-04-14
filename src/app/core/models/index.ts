@@ -19,7 +19,23 @@ export interface AuthResponse {
   email: string;
   phone?: string;
   role: UserRole;
+  emailConfirmed: boolean;
   token: string;
+  refreshToken?: string;
+  tokenExpiresAt?: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
 }
 
 export interface UpdateProfileRequest {

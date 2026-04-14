@@ -2,12 +2,17 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse, LoginRequest, RegisterRequest, UpdateProfileRequest, ChangePasswordRequest, UserRole } from '../models';
+import {
+  AuthResponse, LoginRequest, RegisterRequest, UpdateProfileRequest,
+  ChangePasswordRequest, UserRole, ForgotPasswordRequest, ResetPasswordRequest
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly BASE_URL = '/Auth';
   private readonly TOKEN_KEY = 'tp_token';
+  private readonly REFRESH_TOKEN_KEY = 'tp_refresh_token';
+  private readonly TOKEN_EXPIRY_KEY = 'tp_token_expiry';
   private readonly USER_KEY = 'tp_user';
 
   currentUser = signal<AuthResponse | null>(this.loadUser());
@@ -26,12 +31,30 @@ export class AuthService {
     );
   }
 
+  refresh(refreshToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.BASE_URL}/refresh`, { refreshToken }).pipe(
+      tap(response => this.saveSession(response))
+    );
+  }
+
+  forgotPassword(request: ForgotPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.BASE_URL}/forgot-password`, request);
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.BASE_URL}/reset-password`, request);
+  }
+
+  confirmEmail(token: string): Observable<void> {
+    return this.http.get<void>(`${this.BASE_URL}/confirm-email`, { params: { token } });
+  }
+
   getProfile(): Observable<AuthResponse> {
     return this.http.get<AuthResponse>(`${this.BASE_URL}/profile`).pipe(
       tap(response => {
         const current = this.currentUser();
         if (current) {
-          this.saveSession({ ...response, token: current.token });
+          this.saveSession({ ...response, token: current.token, refreshToken: current.refreshToken });
         }
       })
     );
@@ -46,14 +69,26 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
-    this.currentUser.set(null);
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      this.http.post(`${this.BASE_URL}/logout`, {}).subscribe({ error: () => {} });
+    }
+    this.clearSession();
     this.router.navigate(['/login']);
   }
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  isTokenExpired(): boolean {
+    const expiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+    if (!expiry) return false;
+    return new Date(expiry) <= new Date();
   }
 
   isAuthenticated(): boolean {
@@ -69,8 +104,22 @@ export class AuthService {
     return role === UserRole.Organizer || role === UserRole.Admin;
   }
 
+  clearSession(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+    localStorage.removeItem(this.USER_KEY);
+    this.currentUser.set(null);
+  }
+
   private saveSession(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
+    if (response.refreshToken) {
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
+    }
+    if (response.tokenExpiresAt) {
+      localStorage.setItem(this.TOKEN_EXPIRY_KEY, response.tokenExpiresAt);
+    }
     localStorage.setItem(this.USER_KEY, JSON.stringify(response));
     this.currentUser.set(response);
   }
