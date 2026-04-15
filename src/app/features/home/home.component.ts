@@ -94,9 +94,11 @@ const CATEGORIES = [
             <div class="skeleton-card">
               <div class="skeleton-img"></div>
               <div class="skeleton-body">
+                <div class="skeleton-badge"></div>
                 <div class="skeleton-title"></div>
                 <div class="skeleton-text"></div>
                 <div class="skeleton-text-sm"></div>
+                <div class="skeleton-price"></div>
               </div>
             </div>
           }

@@ -1,12 +1,14 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TicketService } from '../../core/services/ticket.service';
 import { TicketResponse } from '../../core/models';
+import QRCode from 'qrcode';
 
 @Component({
   selector: 'app-my-tickets',
@@ -14,7 +16,7 @@ import { TicketResponse } from '../../core/models';
   imports: [
     CommonModule, RouterLink,
     MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatSnackBarModule, MatTooltipModule
   ],
   template: `
     <div class="tickets-page">
@@ -110,20 +112,37 @@ import { TicketResponse } from '../../core/models';
                   </div>
                 </div>
 
-                <!-- Right: QR code stub -->
+                <!-- Right: QR code rotativo -->
                 <div class="card-right">
                   <div class="qr-wrap">
-                    <img [src]="'data:image/png;base64,' + ticket.qrCodeBase64"
-                         [alt]="ticket.serialNumber"
-                         class="qr-img"
-                         [class.qr-used]="ticket.isUsed">
                     @if (ticket.isUsed) {
+                      <img [src]="'data:image/png;base64,' + ticket.qrCodeBase64"
+                           [alt]="ticket.serialNumber" class="qr-img qr-used">
                       <div class="used-stamp">
                         <mat-icon>check_circle</mat-icon>
                         <span>USADO</span>
                       </div>
+                    } @else {
+                      @if (liveQrMap[ticket.id]?.dataUrl) {
+                        <img [src]="liveQrMap[ticket.id].dataUrl"
+                             [alt]="ticket.serialNumber" class="qr-img"
+                             matTooltip="QR Code rotativo — atualiza automaticamente">
+                      } @else {
+                        <div class="qr-loading">
+                          <mat-progress-spinner diameter="40" mode="indeterminate" color="primary"/>
+                        </div>
+                      }
                     }
                   </div>
+
+                  @if (!ticket.isUsed && liveQrMap[ticket.id]) {
+                    <div class="qr-countdown" [class.expiring]="liveQrMap[ticket.id].secondsRemaining <= 10">
+                      <mat-icon>refresh</mat-icon>
+                      <span>{{ liveQrMap[ticket.id].secondsRemaining }}s</span>
+                    </div>
+                    <p class="qr-hint">Atualiza automaticamente</p>
+                  }
+
                   <p class="serial-number">{{ ticket.serialNumber }}</p>
                   <div class="price-tag">{{ ticket.unitPrice | currency:'BRL' }}</div>
                   @if (ticket.isUsed && ticket.usedAt) {
@@ -368,7 +387,48 @@ import { TicketResponse } from '../../core/models';
       object-fit: contain;
     }
 
+    .qr-loading {
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: 2px dashed var(--border);
+    }
+
     .qr-used { filter: grayscale(80%); }
+
+    .qr-countdown {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--success);
+      background: rgba(67,160,71,.1);
+      padding: 2px 8px;
+      border-radius: 20px;
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+      &.expiring {
+        color: var(--warn);
+        background: rgba(244,67,54,.1);
+        animation: pulse 0.8s ease-in-out infinite;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .qr-hint {
+      font-size: 0.65rem;
+      color: var(--text-hint);
+      margin: 0;
+      text-align: center;
+    }
 
     .used-stamp {
       position: absolute;
@@ -441,13 +501,16 @@ import { TicketResponse } from '../../core/models';
     }
   `]
 })
-export class MyTicketsComponent implements OnInit {
+export class MyTicketsComponent implements OnInit, OnDestroy {
   private ticketService = inject(TicketService);
   private snackBar = inject(MatSnackBar);
 
   tickets: TicketResponse[] = [];
   loading = true;
   activeTab: 'valid' | 'used' = 'valid';
+  liveQrMap: Record<number, { dataUrl: string; secondsRemaining: number }> = {};
+
+  private countdownInterval?: ReturnType<typeof setInterval>;
 
   get validTickets() { return this.tickets.filter(t => !t.isUsed); }
   get usedTickets()  { return this.tickets.filter(t => t.isUsed); }
@@ -455,14 +518,63 @@ export class MyTicketsComponent implements OnInit {
 
   ngOnInit(): void {
     this.ticketService.getMyTickets().subscribe({
-      next: (tickets) => { this.tickets = tickets; this.loading = false; },
+      next: (tickets) => {
+        this.tickets = tickets;
+        this.loading = false;
+        // Inicia QR rotativo para todos os ingressos válidos
+        this.validTickets.forEach(t => this.loadLiveQr(t.id));
+        this.startCountdown();
+      },
       error: () => { this.loading = false; }
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
+  }
+
+  private loadLiveQr(ticketId: number): void {
+    this.ticketService.getLiveQrToken(ticketId).subscribe({
+      next: async (resp) => {
+        const dataUrl = await QRCode.toDataURL(resp.token, {
+          width: 240,
+          margin: 1,
+          color: { dark: '#1a1a2e', light: '#ffffff' },
+          errorCorrectionLevel: 'M'
+        });
+        this.liveQrMap[ticketId] = { dataUrl, secondsRemaining: resp.secondsRemaining };
+      },
+      error: () => {
+        // Fallback: usa QR estático se o endpoint falhar
+        const ticket = this.tickets.find(t => t.id === ticketId);
+        if (ticket) {
+          this.liveQrMap[ticketId] = {
+            dataUrl: `data:image/png;base64,${ticket.qrCodeBase64}`,
+            secondsRemaining: 60
+          };
+        }
+      }
+    });
+  }
+
+  private startCountdown(): void {
+    this.countdownInterval = setInterval(() => {
+      for (const id in this.liveQrMap) {
+        const entry = this.liveQrMap[+id];
+        entry.secondsRemaining--;
+        // Renova 5 segundos antes de expirar
+        if (entry.secondsRemaining <= 5) {
+          this.loadLiveQr(+id);
+        }
+      }
+    }, 1000);
+  }
+
   downloadQRCode(ticket: TicketResponse): void {
+    const src = this.liveQrMap[ticket.id]?.dataUrl
+      ?? `data:image/png;base64,${ticket.qrCodeBase64}`;
     const link = document.createElement('a');
-    link.href = `data:image/png;base64,${ticket.qrCodeBase64}`;
+    link.href = src;
     link.download = `ingresso-${ticket.serialNumber}.png`;
     link.click();
   }
