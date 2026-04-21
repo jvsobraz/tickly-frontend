@@ -1,5 +1,5 @@
 import { Component, OnDestroy, inject, signal, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -8,28 +8,37 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { CheckinOfflineService } from '../../../core/services/checkin-offline.service';
 
 interface ValidateResult {
   isValid: boolean;
   message: string;
+  offline?: boolean;
   ticket?: {
-    ticketId: number;
+    ticketId?: number;
     serialNumber: string;
-    eventTitle: string;
+    eventTitle?: string;
     ticketTypeName: string;
     holderName: string;
-    wasAlreadyUsed: boolean;
+    wasAlreadyUsed?: boolean;
     usedAt?: string;
   };
 }
+
+interface EventOption { id: number; title: string; }
 
 @Component({
   selector: 'app-scan',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterLink,
+    CommonModule, AsyncPipe, FormsModule, RouterLink,
     MatButtonModule, MatIconModule, MatInputModule,
-    MatFormFieldModule, MatProgressSpinnerModule
+    MatFormFieldModule, MatProgressSpinnerModule, MatSelectModule,
+    MatBadgeModule, MatTooltipModule, MatSnackBarModule
   ],
   template: `
     <div class="scan-page">
@@ -39,25 +48,110 @@ interface ValidateResult {
             <a mat-icon-button routerLink="/admin" class="back-btn">
               <mat-icon>arrow_back</mat-icon>
             </a>
-            <div>
-              <h1 class="page-title">Validar Ingressos</h1>
+            <div class="hero-info">
+              <h1 class="page-title">Check-in de Ingressos</h1>
               <p class="page-subtitle">Escaneie ou insira o código do ingresso</p>
+            </div>
+            <!-- Online / Offline badge -->
+            <div class="online-badge" [class.offline]="!(isOnline$ | async)">
+              <mat-icon>{{ (isOnline$ | async) ? 'wifi' : 'wifi_off' }}</mat-icon>
+              <span>{{ (isOnline$ | async) ? 'Online' : 'Offline' }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="container scan-content">
+
+        <!-- Offline warning -->
+        @if (!(isOnline$ | async)) {
+          <div class="offline-banner fade-in">
+            <mat-icon>cloud_off</mat-icon>
+            <div>
+              <strong>Modo Offline Ativo</strong>
+              <p>Os check-ins serão validados localmente e sincronizados quando a conexão retornar.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Sync banner when back online with pending queue -->
+        @if ((isOnline$ | async) && queueCount() > 0) {
+          <div class="sync-banner fade-in">
+            <mat-icon>sync</mat-icon>
+            <div>
+              <strong>{{ queueCount() }} check-in(s) pendente(s) de sincronização</strong>
+              <p>Validações feitas offline ainda não foram enviadas ao servidor.</p>
+            </div>
+            <button mat-raised-button color="primary" (click)="syncQueue()" [disabled]="syncing$ | async">
+              @if (syncing$ | async) { <mat-progress-spinner diameter="18" mode="indeterminate"/> }
+              @else { <mat-icon>sync</mat-icon> Sincronizar }
+            </button>
+          </div>
+        }
+
         <!-- Stats -->
         <div class="stats-row">
           <div class="stat-chip success">
             <mat-icon>check_circle</mat-icon>
-            <span>{{ validatedToday() }} validados hoje</span>
+            <span>{{ validatedToday() }} validados</span>
           </div>
-          <div class="stat-chip warn" *ngIf="lastResult() && !lastResult()!.isValid">
-            <mat-icon>warning</mat-icon>
-            <span>Último: inválido</span>
-          </div>
+          @if (lastResult() && !lastResult()!.isValid) {
+            <div class="stat-chip warn">
+              <mat-icon>warning</mat-icon>
+              <span>Último: inválido</span>
+            </div>
+          }
+          @if (lastResult()?.offline) {
+            <div class="stat-chip offline-chip">
+              <mat-icon>cloud_off</mat-icon>
+              <span>Offline</span>
+            </div>
+          }
+        </div>
+
+        <!-- Event selector + prefetch -->
+        <div class="event-prefetch-card">
+          <h3><mat-icon>event</mat-icon> Pré-carregar evento (offline)</h3>
+          <p class="card-hint">Baixe os ingressos do evento para validação sem internet.</p>
+
+          @if (eventsLoading()) {
+            <div class="loading-row"><mat-progress-spinner diameter="24" mode="indeterminate"/><span>Carregando eventos...</span></div>
+          } @else {
+            <div class="prefetch-row">
+              <mat-form-field appearance="outline" class="event-select">
+                <mat-label>Selecione o evento</mat-label>
+                <mat-select [(ngModel)]="selectedEventId" (ngModelChange)="onEventChange()">
+                  @for (ev of events(); track ev.id) {
+                    <mat-option [value]="ev.id">{{ ev.title }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-raised-button color="accent" (click)="prefetchEvent()"
+                      [disabled]="!selectedEventId || prefetching()">
+                @if (prefetching()) { <mat-progress-spinner diameter="18" mode="indeterminate"/> }
+                @else { <mat-icon>download</mat-icon> Baixar }
+              </button>
+
+              @if (selectedEventId) {
+                <button mat-icon-button color="warn" (click)="clearCache()" matTooltip="Limpar cache deste evento">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              }
+            </div>
+
+            @if (cacheInfo()) {
+              <div class="cache-info">
+                <mat-icon>check_circle</mat-icon>
+                <span>{{ cacheInfo()!.count }} ingressos em cache — baixado {{ cacheInfo()!.cachedAt | date:'dd/MM HH:mm' }}</span>
+              </div>
+            } @else if (selectedEventId) {
+              <div class="cache-info warn">
+                <mat-icon>cloud_off</mat-icon>
+                <span>Nenhum cache. Clique em "Baixar" para habilitar o modo offline.</span>
+              </div>
+            }
+          }
         </div>
 
         <!-- Camera scanner -->
@@ -103,7 +197,7 @@ interface ValidateResult {
               <mat-label>Código do ingresso (serial ou QR hash)</mat-label>
               <mat-icon matPrefix>confirmation_number</mat-icon>
               <input matInput [(ngModel)]="manualCode" (keydown.enter)="validateManual()"
-                     placeholder="TP-XXXXXXXX ou hash do QR..." #manualInputEl>
+                     placeholder="TP-XXXXXXXX ou hash do QR...">
             </mat-form-field>
             <button mat-raised-button color="primary" (click)="validateManual()"
                     [disabled]="!manualCode.trim() || validating()" class="validate-btn">
@@ -115,8 +209,9 @@ interface ValidateResult {
 
         <!-- Result -->
         @if (lastResult()) {
-          <div class="result-card fade-in" [class.result-valid]="lastResult()!.isValid"
-               [class.result-invalid]="!lastResult()!.isValid"
+          <div class="result-card fade-in"
+               [class.result-valid]="lastResult()!.isValid && !lastResult()!.ticket?.wasAlreadyUsed"
+               [class.result-invalid]="!lastResult()!.isValid && !lastResult()!.ticket?.wasAlreadyUsed"
                [class.result-warn]="lastResult()!.ticket?.wasAlreadyUsed">
 
             <div class="result-icon">
@@ -130,13 +225,20 @@ interface ValidateResult {
             </div>
 
             <div class="result-body">
-              <h3>{{ lastResult()!.message }}</h3>
+              <div class="result-header">
+                <h3>{{ lastResult()!.message }}</h3>
+                @if (lastResult()!.offline) {
+                  <span class="offline-tag"><mat-icon>cloud_off</mat-icon> Offline</span>
+                }
+              </div>
               @if (lastResult()!.ticket) {
                 <div class="ticket-info-grid">
-                  <div class="info-item">
-                    <span class="label">Evento</span>
-                    <span class="value">{{ lastResult()!.ticket!.eventTitle }}</span>
-                  </div>
+                  @if (lastResult()!.ticket!.eventTitle) {
+                    <div class="info-item">
+                      <span class="label">Evento</span>
+                      <span class="value">{{ lastResult()!.ticket!.eventTitle }}</span>
+                    </div>
+                  }
                   <div class="info-item">
                     <span class="label">Tipo</span>
                     <span class="value">{{ lastResult()!.ticket!.ticketTypeName }}</span>
@@ -160,6 +262,27 @@ interface ValidateResult {
             </div>
           </div>
         }
+
+        <!-- Offline queue -->
+        @if (pendingQueue().length > 0) {
+          <div class="queue-card">
+            <h3><mat-icon>pending</mat-icon> Fila offline ({{ pendingQueue().length }})</h3>
+            <div class="queue-list">
+              @for (item of pendingQueue().slice(0, 5); track item.id) {
+                <div class="queue-item" [class.valid]="item.result.isValid" [class.invalid]="!item.result.isValid">
+                  <mat-icon>{{ item.result.isValid ? 'check_circle' : 'cancel' }}</mat-icon>
+                  <div>
+                    <span class="queue-serial">{{ item.result.ticket?.serialNumber || item.qrCodeHash.substring(0, 16) + '...' }}</span>
+                    <span class="queue-time">{{ item.validatedAt | date:'HH:mm:ss' }}</span>
+                  </div>
+                </div>
+              }
+              @if (pendingQueue().length > 5) {
+                <p class="queue-more">+ {{ pendingQueue().length - 5 }} mais...</p>
+              }
+            </div>
+          </div>
+        }
       </div>
     </div>
   `,
@@ -171,12 +294,41 @@ interface ValidateResult {
       padding: 32px 0 24px;
     }
 
-    .hero-row { display: flex; align-items: center; gap: 12px; }
+    .hero-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .hero-info { flex: 1; }
     .back-btn { color: white !important; }
     .page-title { font-size: 1.6rem; font-weight: 800; color: white; margin: 0 0 4px; }
     .page-subtitle { color: rgba(255,255,255,.75); margin: 0; }
 
-    .scan-content { padding: 28px 16px 64px; max-width: 680px; display: flex; flex-direction: column; gap: 20px; }
+    .online-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700;
+      background: rgba(67,160,71,.25); color: #c8e6c9;
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+      &.offline { background: rgba(244,67,54,.25); color: #ffcdd2; }
+    }
+
+    .scan-content { padding: 20px 16px 64px; max-width: 680px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Offline banner */
+    .offline-banner, .sync-banner {
+      display: flex; align-items: flex-start; gap: 12px; padding: 16px;
+      border-radius: var(--radius-md); border: 1px solid;
+      mat-icon { flex-shrink: 0; margin-top: 2px; }
+      p { margin: 4px 0 0; font-size: 0.82rem; }
+      strong { font-size: 0.9rem; }
+    }
+
+    .offline-banner {
+      background: #fff8e1; border-color: #f57f17; color: #e65100;
+      mat-icon { color: #f57f17; }
+    }
+
+    .sync-banner {
+      background: #e3f2fd; border-color: #1565c0; color: #0d47a1;
+      mat-icon { color: #1565c0; }
+      button { margin-left: auto; flex-shrink: 0; }
+    }
 
     /* Stats */
     .stats-row { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -186,28 +338,45 @@ interface ValidateResult {
       mat-icon { font-size: 16px; width: 16px; height: 16px; }
       &.success { background: #e8f5e9; color: #2e7d32; }
       &.warn    { background: #fff8e1; color: #f57f17; }
+      &.offline-chip { background: #f3e5f5; color: #6a1b9a; }
+    }
+
+    /* Event prefetch card */
+    .event-prefetch-card {
+      background: var(--surface); border-radius: var(--radius-md);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 20px;
+
+      h3 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 700; margin: 0 0 4px;
+           mat-icon { color: var(--primary); font-size: 20px; width: 20px; height: 20px; } }
+    }
+
+    .card-hint { font-size: 0.82rem; color: var(--text-hint); margin: 0 0 14px; }
+
+    .loading-row { display: flex; align-items: center; gap: 10px; color: var(--text-hint); font-size: 0.85rem; }
+
+    .prefetch-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .event-select { flex: 1 1 200px; }
+
+    .cache-info {
+      display: flex; align-items: center; gap: 6px; margin-top: 10px;
+      font-size: 0.82rem; color: #2e7d32;
+      mat-icon { font-size: 16px; width: 16px; height: 16px; color: #4caf50; }
+      &.warn { color: #b71c1c; mat-icon { color: #f44336; } }
     }
 
     /* Camera */
     .scanner-card {
-      background: var(--surface);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
+      background: var(--surface); border-radius: var(--radius-md);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden;
     }
 
     .camera-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 4/3;
-      background: #0a0a0a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: relative; width: 100%; aspect-ratio: 4/3;
+      background: #0a0a0a; display: flex; align-items: center; justify-content: center;
     }
 
     .camera-feed { width: 100%; height: 100%; object-fit: cover; }
+    .camera-canvas { display: none; }
 
     .camera-placeholder {
       display: flex; flex-direction: column; align-items: center; gap: 8px; color: #666;
@@ -220,9 +389,7 @@ interface ValidateResult {
     }
 
     .scan-frame {
-      width: 220px; height: 220px;
-      border: 3px solid var(--primary);
-      border-radius: 12px;
+      width: 220px; height: 220px; border: 3px solid var(--primary); border-radius: 12px;
       box-shadow: 0 0 0 4000px rgba(0,0,0,.5);
       animation: scan-pulse 2s ease-in-out infinite;
     }
@@ -242,50 +409,71 @@ interface ValidateResult {
 
     /* Manual */
     .manual-card {
-      background: var(--surface);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      padding: 20px;
+      background: var(--surface); border-radius: var(--radius-md);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 20px;
 
       h3 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 700; margin: 0 0 4px;
            mat-icon { color: var(--primary); font-size: 20px; width: 20px; height: 20px; } }
     }
 
     .manual-hint { font-size: 0.82rem; color: var(--text-hint); margin: 0 0 16px; }
-
     .manual-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
     .manual-input { flex: 1 1 240px; }
     .validate-btn { height: 56px !important; border-radius: 8px !important; white-space: nowrap; }
 
     /* Result */
     .result-card {
-      border-radius: var(--radius-md);
-      border: 2px solid;
-      padding: 20px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
+      border-radius: var(--radius-md); border: 2px solid; padding: 20px;
+      display: flex; gap: 16px; align-items: flex-start;
 
-      &.result-valid  { background: #e8f5e9; border-color: #4caf50; .result-icon mat-icon { color: #2e7d32; } }
+      &.result-valid   { background: #e8f5e9; border-color: #4caf50; .result-icon mat-icon { color: #2e7d32; } }
       &.result-invalid { background: #ffebee; border-color: #f44336; .result-icon mat-icon { color: #c62828; } }
-      &.result-warn   { background: #fff8e1; border-color: #ff9800; .result-icon mat-icon { color: #e65100; } }
+      &.result-warn    { background: #fff8e1; border-color: #ff9800; .result-icon mat-icon { color: #e65100; } }
     }
 
     .result-icon mat-icon { font-size: 40px; width: 40px; height: 40px; }
+    .result-body { flex: 1; }
+    .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; h3 { margin: 0; font-size: 1rem; } }
 
-    .result-body { flex: 1; h3 { margin: 0 0 12px; font-size: 1rem; } }
+    .offline-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #7b1fa2; color: white; font-size: 0.7rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 12px; white-space: nowrap;
+      mat-icon { font-size: 12px; width: 12px; height: 12px; }
+    }
 
     .ticket-info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
       @media (max-width: 480px) { grid-template-columns: 1fr; }
     }
 
     .info-item { display: flex; flex-direction: column; gap: 2px; &.full { grid-column: 1 / -1; } }
     .label { font-size: 0.72rem; color: var(--text-hint); text-transform: uppercase; letter-spacing: .5px; }
     .value { font-size: 0.88rem; font-weight: 600; &.mono { font-family: monospace; } }
+
+    /* Offline queue */
+    .queue-card {
+      background: var(--surface); border-radius: var(--radius-md);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 20px;
+
+      h3 { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 700; margin: 0 0 12px;
+           mat-icon { color: #7b1fa2; font-size: 20px; width: 20px; height: 20px; } }
+    }
+
+    .queue-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .queue-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      border-radius: 8px; font-size: 0.82rem;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
+      div { display: flex; gap: 8px; align-items: center; }
+      &.valid   { background: #e8f5e9; mat-icon { color: #4caf50; } }
+      &.invalid { background: #ffebee; mat-icon { color: #f44336; } }
+    }
+
+    .queue-serial { font-weight: 600; font-family: monospace; }
+    .queue-time { color: var(--text-hint); font-size: 0.75rem; }
+    .queue-more { margin: 6px 0 0; font-size: 0.78rem; color: var(--text-hint); text-align: center; }
   `]
 })
 export class ScanComponent implements OnDestroy {
@@ -293,15 +481,77 @@ export class ScanComponent implements OnDestroy {
   @ViewChild('canvasEl') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private http = inject(HttpClient);
+  private offlineService = inject(CheckinOfflineService);
+  private snackBar = inject(MatSnackBar);
+
+  readonly isOnline$ = this.offlineService.isOnline$;
+  readonly syncing$ = this.offlineService.syncing$;
 
   cameraActive = signal(false);
   validating   = signal(false);
   lastResult   = signal<ValidateResult | null>(null);
   validatedToday = signal(0);
+  prefetching  = signal(false);
+  eventsLoading = signal(true);
+  events       = signal<EventOption[]>([]);
+  cacheInfo    = signal<{ cachedAt: string; count: number } | null>(null);
+  pendingQueue = signal(this.offlineService.getQueue());
+  queueCount   = signal(this.offlineService.getQueue().length);
 
+  selectedEventId: number | null = null;
   manualCode = '';
+
   private stream?: MediaStream;
   private scanInterval?: ReturnType<typeof setInterval>;
+
+  constructor() {
+    this.loadEvents();
+    // Auto-sync when coming back online
+    this.isOnline$.subscribe(online => {
+      if (online && this.offlineService.getQueue().length > 0) {
+        this.syncQueue();
+      }
+    });
+  }
+
+  private loadEvents(): void {
+    this.http.get<{ id: number; title: string }[]>('/Events/my-events').subscribe({
+      next: (events) => { this.events.set(events); this.eventsLoading.set(false); },
+      error: () => { this.eventsLoading.set(false); }
+    });
+  }
+
+  onEventChange(): void {
+    if (!this.selectedEventId) return;
+    this.cacheInfo.set(this.offlineService.getCacheInfo(this.selectedEventId));
+  }
+
+  async prefetchEvent(): Promise<void> {
+    if (!this.selectedEventId) return;
+    this.prefetching.set(true);
+    try {
+      const count = await this.offlineService.prefetchEvent(this.selectedEventId);
+      this.cacheInfo.set(this.offlineService.getCacheInfo(this.selectedEventId));
+      this.snackBar.open(`${count} ingressos baixados para uso offline!`, 'OK', { duration: 3000 });
+    } catch {
+      this.snackBar.open('Erro ao baixar ingressos. Verifique a conexão.', 'Fechar', { duration: 4000 });
+    } finally {
+      this.prefetching.set(false);
+    }
+  }
+
+  clearCache(): void {
+    if (!this.selectedEventId) return;
+    this.offlineService.clearCache(this.selectedEventId);
+    this.cacheInfo.set(null);
+    this.snackBar.open('Cache limpo.', 'OK', { duration: 2000 });
+  }
+
+  async syncQueue(): Promise<void> {
+    const { synced } = await this.offlineService.syncQueue();
+    this.updateQueueSignals();
+    this.snackBar.open(`${synced} check-in(s) sincronizados!`, 'OK', { duration: 3000 });
+  }
 
   async startCamera(): Promise<void> {
     try {
@@ -314,7 +564,7 @@ export class ScanComponent implements OnDestroy {
         this.startScanning();
       }, 100);
     } catch {
-      alert('Não foi possível acessar a câmera. Use a entrada manual.');
+      this.snackBar.open('Não foi possível acessar a câmera. Use a entrada manual.', 'Fechar', { duration: 4000 });
     }
   }
 
@@ -325,18 +575,15 @@ export class ScanComponent implements OnDestroy {
   }
 
   private startScanning(): void {
-    if (!('BarcodeDetector' in window)) return; // fallback to manual only
-
+    if (!('BarcodeDetector' in window)) return;
     const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
-
     this.scanInterval = setInterval(async () => {
       if (!this.videoRef?.nativeElement) return;
       try {
         const barcodes = await detector.detect(this.videoRef.nativeElement);
         if (barcodes.length > 0) {
-          const code = barcodes[0].rawValue as string;
           this.stopCamera();
-          await this.validate(code);
+          await this.validate(barcodes[0].rawValue as string);
         }
       } catch { /* ignore */ }
     }, 500);
@@ -349,7 +596,35 @@ export class ScanComponent implements OnDestroy {
 
   private async validate(code: string): Promise<void> {
     this.validating.set(true);
-    this.http.post<ValidateResult>('/Tickets/validate', { qRCodeHash: code }).subscribe({
+    const isOnline = navigator.onLine;
+
+    if (!isOnline && this.selectedEventId) {
+      // Offline validation against cache
+      const result = this.offlineService.validateOffline(code, this.selectedEventId);
+      this.lastResult.set({
+        isValid: result.isValid,
+        message: result.message,
+        offline: true,
+        ticket: result.ticket ? {
+          serialNumber: result.ticket.serialNumber ?? '',
+          holderName: result.ticket.holderName ?? '',
+          ticketTypeName: result.ticket.ticketTypeName ?? '',
+          wasAlreadyUsed: result.wasAlreadyUsed,
+          usedAt: result.ticket.usedAt
+        } : undefined
+      });
+      if (result.isValid && !result.wasAlreadyUsed) {
+        this.validatedToday.update(n => n + 1);
+        this.playBeep(true);
+      } else {
+        this.playBeep(false);
+      }
+      this.updateQueueSignals();
+      this.validating.set(false);
+      return;
+    }
+
+    this.http.post<{ isValid: boolean; message: string; ticket?: any }>('/Tickets/validate', { qRCodeHash: code }).subscribe({
       next: (result) => {
         this.lastResult.set(result);
         if (result.isValid && !result.ticket?.wasAlreadyUsed) {
@@ -368,18 +643,26 @@ export class ScanComponent implements OnDestroy {
     });
   }
 
+  private updateQueueSignals(): void {
+    const queue = this.offlineService.getQueue();
+    this.pendingQueue.set([...queue]);
+    this.queueCount.set(queue.length);
+  }
+
   private playBeep(success: boolean): void {
-    const ctx = new AudioContext();
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.frequency.value = success ? 880 : 220;
-    oscillator.type = 'sine';
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.3);
+    try {
+      const ctx = new AudioContext();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.frequency.value = success ? 880 : 220;
+      oscillator.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.3);
+    } catch { /* AudioContext may be blocked before user gesture */ }
   }
 
   ngOnDestroy(): void { this.stopCamera(); }

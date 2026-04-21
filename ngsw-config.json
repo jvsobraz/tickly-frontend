@@ -47,6 +47,16 @@
         "timeout": "3s",
         "strategy": "freshness"
       }
+    },
+    {
+      "name": "checkin-cache",
+      "urls": ["/Tickets/event/*/checkin-cache"],
+      "cacheConfig": {
+        "maxSize": 10,
+        "maxAge": "8h",
+        "timeout": "10s",
+        "strategy": "freshness"
+      }
     }
   ]
 }
