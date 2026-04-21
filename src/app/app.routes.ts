@@ -132,6 +132,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/split/split.component').then(m => m.SplitComponent)
   },
   {
+    path: 'admin/seat-map/:eventId',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () => import('./features/admin/seat-map/create-seat-map.component').then(m => m.CreateSeatMapComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

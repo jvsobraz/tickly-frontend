@@ -18,6 +18,8 @@ import { SocialProofService } from '../../../core/services/social-proof.service'
 import { WaitlistService } from '../../../core/services/waitlist.service';
 import { FlashSaleService } from '../../../core/services/flash-sale.service';
 import { ReviewService, EventReviewSummary } from '../../../core/services/review.service';
+import { SeatMapService, SeatMap } from '../../../core/services/seat-map.service';
+import { SeatMapComponent } from '../../seat-map/seat-map.component';
 import { EventResponse, TicketTypeResponse, PaymentMethod, OrderItemRequest, SocialProofResponse, FlashSaleResponse } from '../../../core/models';
 
 interface CartItem {
@@ -32,7 +34,8 @@ interface CartItem {
     CommonModule, RouterLink, FormsModule,
     MatButtonModule, MatCardModule, MatIconModule,
     MatProgressSpinnerModule, MatSnackBarModule,
-    MatDividerModule, MatRadioModule, MatSelectModule, MatFormFieldModule
+    MatDividerModule, MatRadioModule, MatSelectModule, MatFormFieldModule,
+    SeatMapComponent
   ],
   template: `
     @if (loading) {
@@ -173,6 +176,14 @@ interface CartItem {
               }
             </div>
           </div>
+
+          <!-- Seat Map -->
+          @if (hasSeatMap()) {
+            <div class="seat-map-section">
+              <h2>Mapa de Assentos</h2>
+              <app-seat-map [eventId]="event!.id" (reserved)="onSeatsReserved($event)" />
+            </div>
+          }
 
           <!-- Ticket Purchase -->
           <div class="ticket-section">
@@ -387,6 +398,7 @@ interface CartItem {
     .review-comment { margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
 
     .no-reviews { color: var(--text-hint); font-size: 0.9rem; }
+    .seat-map-section { margin-top: 32px; h2 { font-size: 1.2rem; font-weight: 800; margin: 0 0 16px; } }
   `]
 })
 export class EventDetailComponent implements OnInit, OnDestroy {
@@ -396,6 +408,7 @@ export class EventDetailComponent implements OnInit, OnDestroy {
   private waitlistService = inject(WaitlistService);
   private flashSaleService = inject(FlashSaleService);
   private reviewService = inject(ReviewService);
+  private seatMapService = inject(SeatMapService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
@@ -410,6 +423,9 @@ export class EventDetailComponent implements OnInit, OnDestroy {
   quantities: Record<number, number> = {};
   selectedPaymentMethod = PaymentMethod.Card;
   PaymentMethod = PaymentMethod;
+
+  seatMap = signal<SeatMap | null>(null);
+  hasSeatMap = signal(false);
 
   reviewSummary = signal<EventReviewSummary | null>(null);
   submittingReview = signal(false);
@@ -442,6 +458,10 @@ export class EventDetailComponent implements OnInit, OnDestroy {
         });
         this.reviewService.getReviews(id).subscribe({
           next: (summary) => this.reviewSummary.set(summary)
+        });
+        this.seatMapService.getByEvent(id).subscribe({
+          next: (sm) => { this.seatMap.set(sm); this.hasSeatMap.set(true); },
+          error: () => { this.hasSeatMap.set(false); }
         });
       },
       error: () => {
@@ -532,6 +552,13 @@ export class EventDetailComponent implements OnInit, OnDestroy {
         this.snackBar.open(err.error?.error || 'Erro ao enviar avaliação.', 'Fechar', { duration: 3000 });
       }
     });
+  }
+
+  onSeatsReserved(event: { seatIds: number[]; totalPrice: number }): void {
+    this.snackBar.open(
+      `${event.seatIds.length} assento(s) reservado(s). Finalize a compra!`,
+      'OK', { duration: 5000, panelClass: 'success-snackbar' }
+    );
   }
 
   buyTickets(): void {
