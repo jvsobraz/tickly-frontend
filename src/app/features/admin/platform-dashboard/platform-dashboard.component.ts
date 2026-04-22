@@ -150,8 +150,8 @@ Chart.register(...registerables);
   styles: [`
     .page-container { padding: 32px 16px; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
-    .subtitle { color: #757575; font-size: 0.85rem; margin: 4px 0 0; }
-    .section-label { font-size: 1rem; font-weight: 600; color: #424242; margin: 24px 0 12px; }
+    .subtitle { color: var(--text-secondary); font-size: 0.85rem; margin: 4px 0 0; }
+    .section-label { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin: 24px 0 12px; }
     .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 8px;
       @media(max-width:768px){grid-template-columns:repeat(2,1fr);}
       @media(max-width:480px){grid-template-columns:1fr;} }
@@ -171,9 +171,9 @@ Chart.register(...registerables);
     .kpi-icon-wrap.info     { background: rgba(2,136,209,0.1);   mat-icon { color:#0288d1; } }
     .kpi-icon-wrap.purple   { background: rgba(123,31,162,0.1);  mat-icon { color:#7b1fa2; } }
     .kpi-icon-wrap.teal     { background: rgba(0,137,123,0.1);   mat-icon { color:#00897b; } }
-    .kpi-label { display: block; font-size: 0.78rem; color: #757575; letter-spacing: 0.3px; }
+    .kpi-label { display: block; font-size: 0.78rem; color: var(--text-secondary); letter-spacing: 0.3px; }
     .kpi-value { display: block; font-size: 1.65rem; font-weight: 700; line-height: 1.2; }
-    .kpi-sub   { display: block; font-size: 0.72rem; color: #9e9e9e; }
+    .kpi-sub   { display: block; font-size: 0.72rem; color: var(--text-hint); }
     .charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px;
       @media(max-width:768px){grid-template-columns:1fr;} }
     .chart-card { margin-bottom:0; }
@@ -185,8 +185,8 @@ Chart.register(...registerables);
     .dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
     .dot.pix { background:#00bcd4; }
     .dot.card { background:#6200ea; }
-    .email-cell { color:#9e9e9e; font-size:0.75rem; }
-    .empty-msg { color:#757575; padding:24px; text-align:center; }
+    .email-cell { color:var(--text-hint); font-size:0.75rem; }
+    .empty-msg { color:var(--text-secondary); padding:24px; text-align:center; }
     .full-width { width:100%; }
   `]
 })

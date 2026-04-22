@@ -320,13 +320,13 @@ interface EventOption { id: number; title: string; }
     }
 
     .offline-banner {
-      background: #fff8e1; border-color: #f57f17; color: #e65100;
+      background: var(--warning-bg); border-color: #f57f17; color: var(--warning-text);
       mat-icon { color: #f57f17; }
     }
 
     .sync-banner {
-      background: #e3f2fd; border-color: #1565c0; color: #0d47a1;
-      mat-icon { color: #1565c0; }
+      background: var(--info-bg); border-color: #1565c0; color: var(--info-text);
+      mat-icon { color: #0288d1; }
       button { margin-left: auto; flex-shrink: 0; }
     }
 
@@ -336,9 +336,9 @@ interface EventOption { id: number; title: string; }
       display: flex; align-items: center; gap: 6px; padding: 6px 14px;
       border-radius: 20px; font-size: 0.82rem; font-weight: 600;
       mat-icon { font-size: 16px; width: 16px; height: 16px; }
-      &.success { background: #e8f5e9; color: #2e7d32; }
-      &.warn    { background: #fff8e1; color: #f57f17; }
-      &.offline-chip { background: #f3e5f5; color: #6a1b9a; }
+      &.success { background: var(--success-bg); color: var(--success-text); }
+      &.warn    { background: var(--warning-bg); color: var(--warning-text); }
+      &.offline-chip { background: rgba(98,0,234,0.12); color: var(--primary); }
     }
 
     /* Event prefetch card */
@@ -359,9 +359,9 @@ interface EventOption { id: number; title: string; }
 
     .cache-info {
       display: flex; align-items: center; gap: 6px; margin-top: 10px;
-      font-size: 0.82rem; color: #2e7d32;
-      mat-icon { font-size: 16px; width: 16px; height: 16px; color: #4caf50; }
-      &.warn { color: #b71c1c; mat-icon { color: #f44336; } }
+      font-size: 0.82rem; color: var(--success-text);
+      mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--success-text); }
+      &.warn { color: var(--error-text); mat-icon { color: var(--error-text); } }
     }
 
     /* Camera */
@@ -379,8 +379,8 @@ interface EventOption { id: number; title: string; }
     .camera-canvas { display: none; }
 
     .camera-placeholder {
-      display: flex; flex-direction: column; align-items: center; gap: 8px; color: #666;
-      mat-icon { font-size: 64px; width: 64px; height: 64px; color: #333; }
+      display: flex; flex-direction: column; align-items: center; gap: 8px; color: #999;
+      mat-icon { font-size: 64px; width: 64px; height: 64px; color: #666; }
     }
 
     .scan-overlay {
@@ -426,9 +426,9 @@ interface EventOption { id: number; title: string; }
       border-radius: var(--radius-md); border: 2px solid; padding: 20px;
       display: flex; gap: 16px; align-items: flex-start;
 
-      &.result-valid   { background: #e8f5e9; border-color: #4caf50; .result-icon mat-icon { color: #2e7d32; } }
-      &.result-invalid { background: #ffebee; border-color: #f44336; .result-icon mat-icon { color: #c62828; } }
-      &.result-warn    { background: #fff8e1; border-color: #ff9800; .result-icon mat-icon { color: #e65100; } }
+      &.result-valid   { background: var(--success-bg); border-color: #4caf50; .result-icon mat-icon { color: var(--success-text); } }
+      &.result-invalid { background: var(--error-bg);   border-color: #f44336; .result-icon mat-icon { color: var(--error-text); } }
+      &.result-warn    { background: var(--warning-bg); border-color: #ff9800; .result-icon mat-icon { color: var(--warning-text); } }
     }
 
     .result-icon mat-icon { font-size: 40px; width: 40px; height: 40px; }
@@ -467,8 +467,8 @@ interface EventOption { id: number; title: string; }
       border-radius: 8px; font-size: 0.82rem;
       mat-icon { font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
       div { display: flex; gap: 8px; align-items: center; }
-      &.valid   { background: #e8f5e9; mat-icon { color: #4caf50; } }
-      &.invalid { background: #ffebee; mat-icon { color: #f44336; } }
+      &.valid   { background: var(--success-bg); mat-icon { color: var(--success-text); } }
+      &.invalid { background: var(--error-bg);   mat-icon { color: var(--error-text); } }
     }
 
     .queue-serial { font-weight: 600; font-family: monospace; }

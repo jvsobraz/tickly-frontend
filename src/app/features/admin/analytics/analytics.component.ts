@@ -156,9 +156,9 @@ Chart.register(...registerables);
     .kpi-card.warn.alert { border-top: 3px solid #e53935;
       .kpi-icon-wrap.warn { background: rgba(229,57,53,0.1); mat-icon { color:#e53935; } }
     }
-    .kpi-label { display: block; font-size: 0.78rem; color: #757575; letter-spacing: 0.3px; }
+    .kpi-label { display: block; font-size: 0.78rem; color: var(--text-secondary); letter-spacing: 0.3px; }
     .kpi-value { display: block; font-size: 1.65rem; font-weight: 700; line-height: 1.2; }
-    .kpi-sub   { display: block; font-size: 0.72rem; color: #9e9e9e; }
+    .kpi-sub   { display: block; font-size: 0.72rem; color: var(--text-hint); }
     .charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px;
       @media(max-width:768px){grid-template-columns:1fr;} }
     .chart-card { margin-bottom:0; }
@@ -170,7 +170,7 @@ Chart.register(...registerables);
     .dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
     .dot.pix { background:#00bcd4; }
     .dot.card { background:#6200ea; }
-    .empty-msg { color:#757575; padding:24px; text-align:center; }
+    .empty-msg { color:var(--text-secondary); padding:24px; text-align:center; }
     .full-width { width:100%; }
   `]
 })

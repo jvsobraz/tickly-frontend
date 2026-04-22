@@ -390,7 +390,7 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
       flex-direction: column;
       align-items: center;
       padding: 24px 16px;
-      color: #9ca3af;
+      color: var(--text-hint);
       gap: 8px;
       mat-icon { font-size: 40px; width: 40px; height: 40px; }
       p { margin: 0; font-size: 0.85rem; }
@@ -428,8 +428,8 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
       min-width: 0;
 
       strong { display: block; font-size: 0.82rem; font-weight: 700; }
-      p      { margin: 2px 0 0; font-size: 0.78rem; color: #6b7280; white-space: normal; line-height: 1.4; }
-      small  { color: #9ca3af; font-size: 0.7rem; }
+      p      { margin: 2px 0 0; font-size: 0.78rem; color: var(--text-secondary); white-space: normal; line-height: 1.4; }
+      small  { color: var(--text-hint); font-size: 0.7rem; }
     }
 
     .unread-dot {
@@ -479,7 +479,7 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
       }
 
       strong { display: block; font-size: 0.9rem; }
-      small  { display: block; color: #757575; font-size: 0.78rem; }
+      small  { display: block; color: var(--text-secondary); font-size: 0.78rem; }
     }
 
     /* ── Mobile ── */

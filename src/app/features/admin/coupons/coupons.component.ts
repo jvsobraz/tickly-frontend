@@ -111,10 +111,10 @@ import { CouponResponse, DiscountType } from '../../../core/models';
     .coupon-form { display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
       @media(max-width:768px){grid-template-columns:1fr;} }
     .coupons-list { display:flex; flex-direction:column; gap:8px; }
-    .coupon-item { display:flex; align-items:center; gap:16px; padding:12px 16px; background:#f5f5f5; border-radius:8px; }
+    .coupon-item { display:flex; align-items:center; gap:16px; padding:12px 16px; background:var(--surface-2); border-radius:8px; }
     .coupon-item.inactive { opacity:0.6; }
-    .coupon-code { font-family:monospace; font-size:1.1rem; font-weight:700; background:#e8eaf6; padding:6px 12px; border-radius:4px; min-width:120px; text-align:center; }
-    .coupon-details { display:flex; gap:16px; align-items:center; flex-wrap:wrap; font-size:0.9rem; color:#616161; }
+    .coupon-code { font-family:monospace; font-size:1.1rem; font-weight:700; background:rgba(98,0,234,0.12); padding:6px 12px; border-radius:4px; min-width:120px; text-align:center; }
+    .coupon-details { display:flex; gap:16px; align-items:center; flex-wrap:wrap; font-size:0.9rem; color:var(--text-secondary); }
     .discount-badge { background:#6200ea; color:white; padding:2px 8px; border-radius:12px; font-weight:600; font-size:0.85rem; }
   `]
 })

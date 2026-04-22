@@ -289,8 +289,8 @@ declare var Stripe: any;
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #ffebee;
-      color: #c62828;
+      background: var(--error-bg);
+      color: var(--error-text);
       padding: 10px 14px;
       border-radius: 8px;
       font-size: 0.88rem;
@@ -308,11 +308,11 @@ declare var Stripe: any;
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: #e8f5e9;
+      background: var(--success-bg);
       display: flex;
       align-items: center;
       justify-content: center;
-      mat-icon { color: #2e7d32; font-size: 32px; width: 32px; height: 32px; }
+      mat-icon { color: var(--success-text); font-size: 32px; width: 32px; height: 32px; }
     }
 
     .pix-instructions h3 { font-size: 1.1rem; font-weight: 700; margin: 0; }
@@ -378,7 +378,7 @@ declare var Stripe: any;
       gap: 12px;
       padding: 24px;
       text-align: center;
-      mat-icon { font-size: 48px; width: 48px; height: 48px; color: #43a047; }
+      mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--success); }
       p { color: var(--text-secondary); margin: 0; }
     }
 
@@ -417,11 +417,11 @@ declare var Stripe: any;
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: #e8f5e9;
+      background: var(--success-bg);
       display: flex;
       align-items: center;
       justify-content: center;
-      mat-icon { font-size: 48px; width: 48px; height: 48px; color: #43a047; }
+      mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--success); }
     }
 
     .success-state h2 { font-size: 1.6rem; font-weight: 800; margin: 0; }

@@ -185,9 +185,9 @@ import { AuthService } from '../../core/services/auth.service';
       div { flex: 1; strong { display: block; } p { margin: 2px 0 0; font-size: 0.82rem; } }
       .expires-tag { font-size: 0.75rem; color: var(--text-hint); white-space: nowrap; }
 
-      &.open     { background: #e3f2fd; border-color: #1565c0; color: #0d47a1; }
-      &.complete { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
-      &.expired  { background: #fafafa; border-color: #e0e0e0; color: var(--text-secondary); }
+      &.open     { background: var(--info-bg);    border-color: #1565c0; color: var(--info-text); }
+      &.complete { background: var(--success-bg); border-color: #4caf50; color: var(--success-text); }
+      &.expired  { background: var(--surface-2);  border-color: var(--border); color: var(--text-secondary); }
     }
 
     /* Summary */
@@ -255,21 +255,21 @@ import { AuthService } from '../../core/services/auth.service';
 
     /* Payment card */
     .payment-card {
-      background: #e8f5e9; border: 2px solid #4caf50; border-radius: var(--radius-md); padding: 20px;
-      h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #2e7d32;
-           mat-icon { color: #4caf50; font-size: 20px; width: 20px; height: 20px; } }
-      p { margin: 0 0 16px; font-size: 0.9rem; color: #388e3c; }
+      background: var(--success-bg); border: 2px solid #4caf50; border-radius: var(--radius-md); padding: 20px;
+      h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--success-text);
+           mat-icon { color: var(--success-text); font-size: 20px; width: 20px; height: 20px; } }
+      p { margin: 0 0 16px; font-size: 0.9rem; color: var(--success-text); }
     }
 
     .pay-full-btn { height: 44px !important; border-radius: 22px !important; }
 
     /* Success */
     .success-card {
-      background: #e8f5e9; border: 2px solid #4caf50; border-radius: var(--radius-md);
+      background: var(--success-bg); border: 2px solid #4caf50; border-radius: var(--radius-md);
       padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
-      mat-icon { font-size: 64px; width: 64px; height: 64px; color: #4caf50; }
-      h2 { margin: 0; color: #2e7d32; }
-      p { margin: 0; color: #388e3c; font-size: 0.9rem; }
+      mat-icon { font-size: 64px; width: 64px; height: 64px; color: var(--success-text); }
+      h2 { margin: 0; color: var(--success-text); }
+      p { margin: 0; color: var(--success-text); font-size: 0.9rem; }
     }
   `]
 })

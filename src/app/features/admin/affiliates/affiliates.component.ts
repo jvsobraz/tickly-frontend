@@ -96,14 +96,14 @@ import { AffiliateLinkResponse, AffiliateEarningsResponse } from '../../../core/
     .earnings-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:24px; }
     .earning-card { display:flex; align-items:center; gap:16px; padding:20px;
       mat-icon { font-size:36px; width:36px; height:36px; }
-      .earning-label { display:block; font-size:0.85rem; color:#757575; }
+      .earning-label { display:block; font-size:0.85rem; color:var(--text-secondary); }
       .earning-value { display:block; font-size:1.6rem; font-weight:700; }
     }
     .create-card { margin-bottom:24px; }
     .links-list { display:flex; flex-direction:column; gap:12px; }
-    .link-item { display:flex; justify-content:space-between; align-items:center; padding:16px; background:#f5f5f5; border-radius:8px; }
-    .link-url { font-size:0.8rem; color:#6200ea; word-break:break-all; margin:4px 0; font-family:monospace; }
-    .link-stats { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:0.85rem; color:#757575;
+    .link-item { display:flex; justify-content:space-between; align-items:center; padding:16px; background:var(--surface-2); border-radius:8px; }
+    .link-url { font-size:0.8rem; color:var(--primary); word-break:break-all; margin:4px 0; font-family:monospace; }
+    .link-stats { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:0.85rem; color:var(--text-secondary);
       span { display:flex; align-items:center; gap:4px; mat-icon { font-size:16px; width:16px; height:16px; } }
     }
   `]

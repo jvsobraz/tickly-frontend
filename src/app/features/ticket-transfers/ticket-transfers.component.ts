@@ -163,19 +163,19 @@ import { TicketTransferResponse, TicketTransferStatus } from '../../core/models'
     .form-card { padding:8px; }
     form { display:flex; flex-direction:column; gap:14px; margin-top:8px; }
     .full-width { width:100%; }
-    .info-box { display:flex; align-items:flex-start; gap:8px; background:#e3f2fd; border-radius:8px; padding:12px;
-      mat-icon { color:#0288d1; flex-shrink:0; font-size:18px; width:18px; height:18px; }
-      p { margin:0; font-size:0.85rem; color:#01579b; }
+    .info-box { display:flex; align-items:flex-start; gap:8px; background:var(--info-bg); border-radius:8px; padding:12px;
+      mat-icon { color:var(--info); flex-shrink:0; font-size:18px; width:18px; height:18px; }
+      p { margin:0; font-size:0.85rem; color:var(--info-text); }
     }
     .transfer-card { padding:16px; }
-    .pending-card { border-left:4px solid #6200ea; }
+    .pending-card { border-left:4px solid var(--primary); }
     .transfer-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-    .transfer-meta { font-size:0.8rem; color:#757575; display:flex; align-items:center; gap:4px; margin-top:4px;
+    .transfer-meta { font-size:0.8rem; color:var(--text-secondary); display:flex; align-items:center; gap:4px; margin-top:4px;
       mat-icon { font-size:14px; width:14px; height:14px; }
     }
     .transfer-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
     .empty-card { text-align:center; padding:48px;
-      mat-icon { font-size:48px; width:48px; height:48px; color:#bdbdbd; display:block; margin:0 auto 16px; } p { color:#757575; } }
+      mat-icon { font-size:48px; width:48px; height:48px; color:var(--text-hint); display:block; margin:0 auto 16px; } p { color:var(--text-secondary); } }
   `]
 })
 export class TicketTransfersComponent implements OnInit {

@@ -144,13 +144,13 @@ import { PaymentLinkResponse } from '../../../core/models';
     .link-card.inactive { opacity:0.6; }
     .link-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
     .link-target { display:block; font-weight:600; font-size:0.95rem; }
-    .link-stats { display:block; font-size:0.8rem; color:#757575; margin-top:2px; }
+    .link-stats { display:block; font-size:0.8rem; color:var(--text-secondary); margin-top:2px; }
     .link-actions { display:flex; gap:4px; flex-shrink:0; }
-    .link-url { background:#f5f5f5; border-radius:4px; padding:8px 12px; margin-bottom:8px; overflow:hidden;
+    .link-url { background:var(--surface-2); border-radius:4px; padding:8px 12px; margin-bottom:8px; overflow:hidden;
       code { font-size:0.8rem; word-break:break-all; } }
-    .link-msg { font-style:italic; color:#616161; font-size:0.85rem; margin:4px 0 8px; }
-    .link-meta { display:flex; gap:16px; font-size:0.75rem; color:#9e9e9e; }
-    .empty-card { text-align:center; padding:48px; mat-icon { font-size:48px; width:48px; height:48px; color:#bdbdbd; display:block; margin:0 auto 16px; } p { color:#757575; } }
+    .link-msg { font-style:italic; color:var(--text-secondary); font-size:0.85rem; margin:4px 0 8px; }
+    .link-meta { display:flex; gap:16px; font-size:0.75rem; color:var(--text-hint); }
+    .empty-card { text-align:center; padding:48px; mat-icon { font-size:48px; width:48px; height:48px; color:var(--text-hint); display:block; margin:0 auto 16px; } p { color:var(--text-secondary); } }
   `]
 })
 export class PaymentLinksComponent implements OnInit {

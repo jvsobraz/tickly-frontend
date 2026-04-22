@@ -146,9 +146,9 @@ import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-qu
 
     .join-icon {
       width: 80px; height: 80px; border-radius: 50%;
-      background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+      background: rgba(98,0,234,0.12);
       display: flex; align-items: center; justify-content: center;
-      mat-icon { font-size: 40px; width: 40px; height: 40px; color: #7b1fa2; }
+      mat-icon { font-size: 40px; width: 40px; height: 40px; color: var(--primary); }
     }
 
     .join-card h2 { margin: 0; font-size: 1.3rem; font-weight: 800; }
@@ -171,17 +171,17 @@ import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-qu
       padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
 
       &.status-waiting { border-color: #ff9800; }
-      &.status-active  { border-color: #4caf50; background: #f1f8e9; }
+      &.status-active  { border-color: #4caf50; background: var(--success-bg); }
       &.status-done    { border-color: var(--border); }
     }
 
     /* Active state */
     .active-header { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .active-header h2 { margin: 0; font-size: 1.4rem; font-weight: 800; color: #2e7d32; }
-    .active-msg { color: #388e3c; margin: 0; font-size: 0.95rem; }
+    .active-header h2 { margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--success-text); }
+    .active-msg { color: var(--success-text); margin: 0; font-size: 0.95rem; }
 
     .pulse-icon {
-      font-size: 48px; width: 48px; height: 48px; color: #4caf50;
+      font-size: 48px; width: 48px; height: 48px; color: var(--success-text);
       animation: pulse-scale 1s ease-in-out infinite;
     }
 
@@ -192,9 +192,9 @@ import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-qu
 
     .timer-ring { position: relative; width: 140px; height: 140px; }
     .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-    .ring-bg { fill: none; stroke: #e8f5e9; stroke-width: 8; }
+    .ring-bg { fill: none; stroke: rgba(76,175,80,0.2); stroke-width: 8; }
     .ring-progress {
-      fill: none; stroke: #4caf50; stroke-width: 8;
+      fill: none; stroke: #66bb6a; stroke-width: 8;
       stroke-dasharray: 283; stroke-linecap: round;
       transition: stroke-dashoffset 1s linear;
     }
@@ -202,8 +202,8 @@ import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-qu
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
     }
-    .timer-seconds { font-size: 2rem; font-weight: 800; color: #2e7d32; line-height: 1; }
-    .timer-unit { font-size: 0.75rem; color: #4caf50; }
+    .timer-seconds { font-size: 2rem; font-weight: 800; color: var(--success-text); line-height: 1; }
+    .timer-unit { font-size: 0.75rem; color: var(--success-text); }
 
     .buy-btn { height: 48px !important; border-radius: 24px !important; padding: 0 32px !important; font-size: 1rem !important; }
 
@@ -215,10 +215,10 @@ import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-qu
 
     .position-display {
       display: flex; flex-direction: column; align-items: center;
-      background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 16px; padding: 20px 40px;
+      background: var(--warning-bg); border-radius: 16px; padding: 20px 40px;
     }
-    .position-number { font-size: 4rem; font-weight: 900; color: #e65100; line-height: 1; }
-    .position-label { font-size: 0.82rem; font-weight: 600; color: #bf360c; text-transform: uppercase; letter-spacing: 1px; }
+    .position-number { font-size: 4rem; font-weight: 900; color: var(--warning-text); line-height: 1; }
+    .position-label { font-size: 0.82rem; font-weight: 600; color: var(--warning-text); text-transform: uppercase; letter-spacing: 1px; }
 
     .queue-size { font-size: 0.9rem; color: var(--text-secondary); margin: 0; }
     .queue-hint { font-size: 0.82rem; color: var(--text-hint); margin: 0; max-width: 300px; }

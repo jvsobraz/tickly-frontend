@@ -71,18 +71,18 @@ import { ResaleResponse } from '../../core/models';
   `,
   styles: [`
     .page-container { padding:32px 16px; }
-    .subtitle { color:#757575; margin:-16px 0 32px; }
+    .subtitle { color:var(--text-secondary); margin:-16px 0 32px; }
     .resale-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; }
     .resale-info { display:flex; flex-direction:column; gap:12px; }
-    .info-row { display:flex; align-items:center; gap:8px; color:#616161; font-size:0.9rem; mat-icon { font-size:18px; width:18px; height:18px; } }
-    .price-section { display:flex; justify-content:space-between; padding:12px; background:#f5f5f5; border-radius:8px; }
-    .price-label { display:block; font-size:0.75rem; color:#757575; margin-bottom:4px; }
-    .original-price span:last-child { text-decoration:line-through; color:#9e9e9e; }
-    .asking-price .price { color:#6200ea; font-size:1.2rem; font-weight:700; }
-    .seller-info { display:flex; align-items:center; gap:8px; font-size:0.85rem; color:#757575; }
+    .info-row { display:flex; align-items:center; gap:8px; color:var(--text-secondary); font-size:0.9rem; mat-icon { font-size:18px; width:18px; height:18px; } }
+    .price-section { display:flex; justify-content:space-between; padding:12px; background:var(--surface-2); border-radius:8px; }
+    .price-label { display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px; }
+    .original-price span:last-child { text-decoration:line-through; color:var(--text-hint); }
+    .asking-price .price { color:var(--primary); font-size:1.2rem; font-weight:700; }
+    .seller-info { display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-secondary); }
     .empty-state { text-align:center; padding:64px;
-      mat-icon { font-size:64px; width:64px; height:64px; color:#bdbdbd; display:block; margin:0 auto 16px; }
-      h3 { margin:0 0 8px; } p { color:#757575; }
+      mat-icon { font-size:64px; width:64px; height:64px; color:var(--text-hint); display:block; margin:0 auto 16px; }
+      h3 { margin:0 0 8px; } p { color:var(--text-secondary); }
     }
   `]
 })

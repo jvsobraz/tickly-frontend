@@ -156,18 +156,18 @@ import { EventListResponse, EventStatus } from '../../core/models';
     .stat-card { display: flex; align-items: center; gap: 16px; padding: 24px;
       mat-icon { font-size: 48px; width: 48px; height: 48px; }
       h3 { font-size: 2rem; font-weight: 700; margin: 0; }
-      p { margin: 4px 0 0; color: #757575; } }
+      p { margin: 4px 0 0; color: var(--text-secondary); } }
     .tools-section { margin-bottom: 32px; }
-    .tools-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 16px; color: #424242; }
+    .tools-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 16px; color: var(--text-primary); }
     .tools-grid { display: flex; gap: 12px; flex-wrap: wrap; }
     .tool-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 32px;
       mat-icon { font-size: 28px; width: 28px; height: 28px; }
       span { font-size: 0.9rem; }
     }
     .table-card mat-card-content { overflow-x: auto; }
-    .empty-state { text-align: center; padding: 32px; color: #757575;
+    .empty-state { text-align: center; padding: 32px; color: var(--text-secondary);
       mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 8px; }
-      a { color: #6200ea; } }
+      a { color: var(--primary); } }
   `]
 })
 export class AdminComponent implements OnInit {

@@ -32,6 +32,18 @@
   --transition:     0.2s cubic-bezier(.4,0,.2,1);
 }
 
+// ── Semantic state tokens ────────────────────────────────────────────────────
+:root {
+  --success-bg:   #e8f5e9;
+  --success-text: #2e7d32;
+  --error-bg:     #ffebee;
+  --error-text:   #c62828;
+  --warning-bg:   #fff8e1;
+  --warning-text: #e65100;
+  --info-bg:      #e3f2fd;
+  --info-text:    #0d47a1;
+}
+
 // ── Dark mode tokens ────────────────────────────────────────────────────────
 [data-theme='dark'] {
   --background:     #0f0f1a;
@@ -46,6 +58,14 @@
   --shadow-md:      0 4px 6px rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.2);
   --shadow-lg:      0 10px 15px rgba(0,0,0,.3), 0 4px 6px rgba(0,0,0,.2);
   --shadow-xl:      0 20px 25px rgba(0,0,0,.4), 0 10px 10px rgba(0,0,0,.25);
+  --success-bg:     rgba(46, 125, 50, 0.15);
+  --success-text:   #81c784;
+  --error-bg:       rgba(198, 40, 40, 0.15);
+  --error-text:     #ef9a9a;
+  --warning-bg:     rgba(245, 127, 23, 0.15);
+  --warning-text:   #ffb74d;
+  --info-bg:        rgba(25, 118, 210, 0.15);
+  --info-text:      #90caf9;
 }
 
 // ── Base ────────────────────────────────────────────────────────────────────
@@ -252,7 +272,7 @@ body {
 // ── Category badge ────────────────────────────────────────────────────────────
 .category-badge {
   display: inline-block;
-  background: #ede7f6;
+  background: rgba(98, 0, 234, 0.12);
   color: var(--primary);
   padding: 3px 10px;
   border-radius: 20px;
@@ -267,6 +287,13 @@ body {
 .status-cancelled{ background: #ffebee !important; color: #c62828 !important; }
 .status-pending  { background: #fff8e1 !important; color: #f57f17 !important; }
 .status-paid     { background: #e8f5e9 !important; color: #2e7d32 !important; }
+
+[data-theme='dark'] {
+  .status-active   { background: rgba(67, 160, 71, 0.2) !important; color: #81c784 !important; }
+  .status-cancelled{ background: rgba(198, 40, 40, 0.2) !important; color: #ef9a9a !important; }
+  .status-pending  { background: rgba(245, 127, 23, 0.2) !important; color: #ffcc80 !important; }
+  .status-paid     { background: rgba(67, 160, 71, 0.2) !important; color: #81c784 !important; }
+}
 
 // ── Snackbar ─────────────────────────────────────────────────────────────────
 .success-snackbar { --mdc-snackbar-container-color: #43a047; }
@@ -292,7 +319,7 @@ body {
   img {
     width: 200px;
     height: 200px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border);
     border-radius: 8px;
   }
 }
@@ -353,7 +380,7 @@ body {
     font-size: 72px;
     width: 72px;
     height: 72px;
-    color: #d1d5db;
+    color: var(--text-hint);
     display: block;
     margin: 0 auto 16px;
   }

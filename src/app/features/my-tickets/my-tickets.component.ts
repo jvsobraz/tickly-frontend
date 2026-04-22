@@ -488,14 +488,14 @@ import QRCode from 'qrcode';
 
     .sk-left {
       flex: 1;
-      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
       background-size: 400% 100%;
       animation: skeleton-shimmer 1.4s ease infinite;
     }
 
     .sk-right {
       width: 200px;
-      background: linear-gradient(90deg, #ebebeb 25%, #f5f5f5 50%, #ebebeb 75%);
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
       background-size: 400% 100%;
       animation: skeleton-shimmer 1.4s .2s ease infinite;
     }

@@ -125,25 +125,25 @@ import { PaymentLinkResponse, PaymentMethod } from '../../core/models';
       h1 { margin:0; font-size:1.5rem; }
     }
     .pay-card { padding:24px; }
-    .custom-message { background:#ede7f6; border-radius:8px; padding:16px; display:flex; align-items:flex-start; gap:12px; margin-bottom:20px;
-      mat-icon { color:#6200ea; flex-shrink:0; }
-      p { margin:0; font-style:italic; color:#4527a0; }
+    .custom-message { background:rgba(98,0,234,0.12); border-radius:8px; padding:16px; display:flex; align-items:flex-start; gap:12px; margin-bottom:20px;
+      mat-icon { color:var(--primary); flex-shrink:0; }
+      p { margin:0; font-style:italic; color:var(--text-secondary); }
     }
-    .link-info { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; padding:16px; background:#f5f5f5; border-radius:8px; }
+    .link-info { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; padding:16px; background:var(--surface-2); border-radius:8px; }
     .info-row { display:flex; align-items:center; gap:8px; font-size:0.9rem;
-      mat-icon { font-size:18px; width:18px; height:18px; color:#6200ea; }
+      mat-icon { font-size:18px; width:18px; height:18px; color:var(--primary); }
     }
     .auth-notice { text-align:center; padding:24px; display:flex; flex-direction:column; align-items:center; gap:12px;
-      mat-icon { font-size:40px; width:40px; height:40px; color:#bdbdbd; }
-      p { color:#757575; margin:0; }
+      mat-icon { font-size:40px; width:40px; height:40px; color:var(--text-hint); }
+      p { color:var(--text-secondary); margin:0; }
     }
     .checkout-options { display:flex; flex-direction:column; gap:16px; }
     .full-width { width:100%; }
     .buy-btn { height:52px; font-size:1rem; }
     .error-card { text-align:center; padding:48px; display:flex; flex-direction:column; align-items:center; gap:16px;
-      mat-icon { font-size:56px; width:56px; height:56px; color:#e53935; }
+      mat-icon { font-size:56px; width:56px; height:56px; color:var(--warn); }
       h2 { margin:0; }
-      p { color:#757575; }
+      p { color:var(--text-secondary); }
     }
   `]
 })

@@ -493,7 +493,7 @@ import { forkJoin } from 'rxjs';
     .qr-container {
       display: flex;
       justify-content: center;
-      background: white;
+      background: #ffffff;
       border-radius: 12px;
       padding: 16px;
       border: 1px solid var(--border);

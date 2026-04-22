@@ -308,7 +308,9 @@ const CATEGORIES = [
       height: 46px;
       background: transparent;
       font-family: 'Inter', sans-serif;
-      color: var(--text-primary);
+      color: #1a1a2e;
+
+      &::placeholder { color: #9e9e9e; }
     }
 
     .search-btn {
@@ -347,7 +349,7 @@ const CATEGORIES = [
 
     /* ── Stats bar ── */
     .stats-bar {
-      background: white;
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
       padding: 20px 0;
       box-shadow: var(--shadow-sm);
@@ -395,7 +397,7 @@ const CATEGORIES = [
 
     /* ── Event card (new design) ── */
     .event-card-wrap {
-      background: white;
+      background: var(--surface);
       border-radius: 16px;
       overflow: hidden;
       cursor: pointer;
@@ -520,7 +522,7 @@ const CATEGORIES = [
     }
 
     .cat-card {
-      background: white;
+      background: var(--surface);
       border-radius: var(--radius-md);
       padding: 24px 12px;
       text-align: center;
@@ -548,7 +550,7 @@ const CATEGORIES = [
       width: 48px;
       height: 48px;
       border-radius: 12px;
-      background: #ede7f6;
+      background: rgba(98, 0, 234, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -559,7 +561,7 @@ const CATEGORIES = [
     /* ── How it works ── */
     .how-section {
       padding: 64px 0;
-      background: white;
+      background: var(--surface);
     }
 
     .steps-grid {
@@ -622,7 +624,7 @@ const CATEGORIES = [
       padding: 24px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
-      background: white;
+      background: var(--surface);
       transition: box-shadow 0.2s;
 
       &:hover { box-shadow: var(--shadow-md); }
@@ -635,7 +637,7 @@ const CATEGORIES = [
       width: 44px;
       height: 44px;
       border-radius: 12px;
-      background: #ede7f6;
+      background: rgba(98, 0, 234, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;

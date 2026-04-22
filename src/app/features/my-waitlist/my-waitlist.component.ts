@@ -71,13 +71,13 @@ import { WaitlistEntryResponse, WaitlistStatus } from '../../core/models';
     .page-container { padding:32px 16px; }
     .entries-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:24px; }
     .entry-status { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-    .entry-date { font-size:0.85rem; color:#757575; }
-    .notified-banner { display:flex; align-items:center; gap:12px; background:#fff3e0; padding:12px; border-radius:8px; border-left:4px solid #ff6d00;
-      mat-icon { color:#ff6d00; } p { margin:4px 0 0; font-size:0.85rem; color:#757575; }
+    .entry-date { font-size:0.85rem; color:var(--text-secondary); }
+    .notified-banner { display:flex; align-items:center; gap:12px; background:var(--warning-bg); padding:12px; border-radius:8px; border-left:4px solid #ff6d00;
+      mat-icon { color:#ff6d00; } p { margin:4px 0 0; font-size:0.85rem; color:var(--text-secondary); }
     }
     .empty-state { text-align:center; padding:64px 16px;
-      mat-icon { font-size:64px; width:64px; height:64px; color:#bdbdbd; display:block; margin:0 auto 16px; }
-      h3 { margin:0 0 8px; } p { color:#757575; margin:0 0 24px; }
+      mat-icon { font-size:64px; width:64px; height:64px; color:var(--text-hint); display:block; margin:0 auto 16px; }
+      h3 { margin:0 0 8px; } p { color:var(--text-secondary); margin:0 0 24px; }
     }
   `]
 })

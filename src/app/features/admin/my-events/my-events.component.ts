@@ -229,10 +229,10 @@ import { EventListResponse } from '../../../core/models';
       font-weight: 700;
       letter-spacing: .5px;
 
-      &.active    { background: #e8f5e9; color: #2e7d32; }
-      &.published { background: #e3f2fd; color: #1565c0; }
-      &.draft     { background: #fff8e1; color: #f57f17; }
-      &.cancelled { background: #ffebee; color: #c62828; }
+      &.active    { background: var(--success-bg); color: var(--success-text); }
+      &.published { background: var(--info-bg);    color: var(--info-text); }
+      &.draft     { background: var(--warning-bg); color: var(--warning-text); }
+      &.cancelled { background: var(--error-bg);   color: var(--error-text); }
     }
 
     .event-info {

@@ -302,8 +302,8 @@ interface CartItem {
       @media (max-width: 900px) { grid-template-columns: 1fr; } }
     .ticket-card { position: sticky; top: 80px; }
     .ticket-type { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 0; }
-    .ticket-info { flex: 1; p { color: #616161; font-size: 0.9rem; margin: 4px 0; } }
-    .availability { color: #757575; }
+    .ticket-info { flex: 1; p { color: var(--text-secondary); font-size: 0.9rem; margin: 4px 0; } }
+    .availability { color: var(--text-secondary); }
     .qty-select { width: 100px; margin-left: 16px; }
     .order-summary { padding: 16px 0; }
     .summary-line, .summary-total { display: flex; justify-content: space-between; padding: 4px 0; }
@@ -311,9 +311,9 @@ interface CartItem {
     .payment-method { padding: 16px 0; }
     .radio-group { display: flex; gap: 16px; }
     .buy-btn { height: 48px; font-size: 1rem; }
-    .login-hint { text-align: center; font-size: 0.9rem; color: #757575; margin-top: 8px; a { color: #6200ea; } }
+    .login-hint { text-align: center; font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px; a { color: var(--primary); } }
     .category-badge { background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; }
-    .social-proof-bar { background: #1a1a2e; color: white; padding: 10px 24px; display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.88rem;
+    .social-proof-bar { background: var(--surface-2); color: var(--text-primary); padding: 10px 24px; display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.88rem;
       span { display: flex; align-items: center; gap: 6px; mat-icon { font-size: 16px; width: 16px; height: 16px; } }
       .urgency { color: #ff6d00; font-weight: 600; }
     }
@@ -323,7 +323,7 @@ interface CartItem {
     .flash-banner { background: #f44336; color: white; padding: 4px 10px; font-size: 0.78rem; font-weight: 700;
       display: flex; justify-content: space-between; align-items: center; border-radius: 4px 4px 0 0; margin: -16px -0px 8px;
       .flash-countdown { font-family: monospace; font-size: 0.9rem; } }
-    .price-original { text-decoration: line-through; color: #9e9e9e; font-size: 0.9rem; margin-right: 6px; }
+    .price-original { text-decoration: line-through; color: var(--text-hint); font-size: 0.9rem; margin-right: 6px; }
     .price-flash { color: #f44336; font-weight: 700; }
     .flash-discount { background: #f44336; color: white; font-size: 0.72rem; padding: 1px 6px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
     .share-section { margin-top: 24px; h3 { font-size: 1rem; font-weight: 700; margin: 0 0 12px; } }
@@ -348,7 +348,7 @@ interface CartItem {
     .stars-row, .review-stars { display: flex; }
 
     .star {
-      font-size: 20px; width: 20px; height: 20px; color: #d1d5db;
+      font-size: 20px; width: 20px; height: 20px; color: var(--border);
       &.filled { color: #f59e0b; }
       &.sm { font-size: 14px; width: 14px; height: 14px; }
       &.pick { font-size: 28px; width: 28px; height: 28px; cursor: pointer; transition: color 0.1s;
@@ -359,7 +359,7 @@ interface CartItem {
     .bar-row { display: flex; align-items: center; gap: 6px; font-size: 0.78rem;
       .bar-label { width: 10px; text-align: right; }
       .bar-star { font-size: 12px; width: 12px; height: 12px; color: #f59e0b; }
-      .bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+      .bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
       .bar-fill { height: 100%; background: #f59e0b; border-radius: 3px; transition: width 0.3s; }
       .bar-count { width: 20px; color: var(--text-hint); }
     }

@@ -154,15 +154,15 @@ import { FlashSaleResponse, DiscountType } from '../../../core/models';
     .sale-card.ended { opacity:0.6; }
     .sale-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
     .sale-title { display:block; font-weight:600; }
-    .sale-event { display:block; font-size:0.82rem; color:#757575; }
+    .sale-event { display:block; font-size:0.82rem; color:var(--text-secondary); }
     .sale-prices { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-    .original-price { text-decoration:line-through; color:#9e9e9e; }
+    .original-price { text-decoration:line-through; color:var(--text-hint); }
     .flash-price { font-size:1.3rem; font-weight:700; color:#e53935; }
     .discount-badge { background:#e53935; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600; }
-    .sale-meta { display:flex; gap:16px; font-size:0.8rem; color:#616161; flex-wrap:wrap;
+    .sale-meta { display:flex; gap:16px; font-size:0.8rem; color:var(--text-secondary); flex-wrap:wrap;
       span { display:flex; align-items:center; gap:4px; mat-icon { font-size:14px; width:14px; height:14px; } } }
     .empty-card { text-align:center; padding:48px;
-      mat-icon { font-size:48px; width:48px; height:48px; color:#bdbdbd; display:block; margin:0 auto 16px; } p { color:#757575; } }
+      mat-icon { font-size:48px; width:48px; height:48px; color:var(--text-hint); display:block; margin:0 auto 16px; } p { color:var(--text-secondary); } }
   `]
 })
 export class FlashSalesComponent implements OnInit {

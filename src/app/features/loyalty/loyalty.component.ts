@@ -102,10 +102,10 @@ import { LoyaltyBalanceResponse, LoyaltyTransactionResponse, LoyaltyTransactionT
     .points-display mat-icon { color:#ffd600; }
     .redeem-display mat-icon { color:#43a047; }
     .points-number { display:block; font-size:2.5rem; font-weight:700; line-height:1; }
-    .points-label, .redeem-label { display:block; font-size:0.85rem; color:#757575; }
+    .points-label, .redeem-label { display:block; font-size:0.85rem; color:var(--text-secondary); }
     .redeem-value { display:block; font-size:2rem; font-weight:700; color:#43a047; line-height:1; }
     .how-works-card { }
-    .how-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f0f0f0;
+    .how-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);
       mat-icon { color:#6200ea; } }
     .points-positive { color:#43a047; font-weight:600; }
     .points-negative { color:#e53935; font-weight:600; }
