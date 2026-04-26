@@ -7,13 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { WaitlistService } from '../../core/services/waitlist.service';
 import { WaitlistEntryResponse, WaitlistStatus } from '../../core/models';
 
 @Component({
   selector: 'app-my-waitlist',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatChipsModule, MatSnackBarModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatChipsModule, MatSnackBarModule, TranslateModule],
   template: `
     <div class="container page-container">
       <h1 class="section-title">Lista de Espera</h1>

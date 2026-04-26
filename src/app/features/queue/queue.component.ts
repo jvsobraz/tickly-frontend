@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-queue.service';
 
 @Component({
@@ -12,7 +13,8 @@ import { VirtualQueueService, QueueStatus } from '../../core/services/virtual-qu
   standalone: true,
   imports: [
     CommonModule, RouterLink,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="queue-page">

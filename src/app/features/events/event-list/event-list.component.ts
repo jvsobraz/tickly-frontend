@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { TranslateModule } from '@ngx-translate/core';
 import { EventService } from '../../../core/services/event.service';
 import { EventListResponse } from '../../../core/models';
 
@@ -19,15 +20,16 @@ import { EventListResponse } from '../../../core/models';
     CommonModule, RouterLink, FormsModule, ReactiveFormsModule,
     MatButtonModule, MatIconModule, MatInputModule,
     MatFormFieldModule, MatSelectModule,
-    MatProgressSpinnerModule, MatPaginatorModule
+    MatProgressSpinnerModule, MatPaginatorModule,
+    TranslateModule
   ],
   template: `
     <div class="events-page">
       <!-- Page header -->
       <div class="page-hero">
         <div class="container">
-          <h1 class="page-title">Todos os Eventos</h1>
-          <p class="page-subtitle">Encontre os melhores eventos perto de você</p>
+          <h1 class="page-title">{{ 'EVENTS.PAGE_TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ 'EVENTS.PAGE_SUBTITLE' | translate }}</p>
         </div>
       </div>
 
@@ -35,21 +37,21 @@ import { EventListResponse } from '../../../core/models';
         <!-- Filters -->
         <form [formGroup]="filterForm" class="filters-bar" (ngSubmit)="applyFilters()">
           <mat-form-field appearance="outline" class="filter-search">
-            <mat-label>Buscar evento</mat-label>
+            <mat-label>{{ 'EVENTS.SEARCH_LABEL' | translate }}</mat-label>
             <mat-icon matPrefix>search</mat-icon>
-            <input matInput formControlName="search" placeholder="Título, local...">
+            <input matInput formControlName="search" [placeholder]="'EVENTS.SEARCH_PLACEHOLDER' | translate">
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-city">
-            <mat-label>Cidade</mat-label>
+            <mat-label>{{ 'EVENTS.CITY_LABEL' | translate }}</mat-label>
             <mat-icon matPrefix>location_on</mat-icon>
-            <input matInput formControlName="city" placeholder="São Paulo, Rio...">
+            <input matInput formControlName="city" [placeholder]="'EVENTS.CITY_PLACEHOLDER' | translate">
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-category">
-            <mat-label>Categoria</mat-label>
+            <mat-label>{{ 'EVENTS.CATEGORY_LABEL' | translate }}</mat-label>
             <mat-select formControlName="category">
-              <mat-option value="">Todas</mat-option>
+              <mat-option value="">{{ 'EVENTS.ALL_CATEGORIES' | translate }}</mat-option>
               @for (cat of eventService.categories; track cat) {
                 <mat-option [value]="cat">{{ cat }}</mat-option>
               }
@@ -58,7 +60,7 @@ import { EventListResponse } from '../../../core/models';
 
           <div class="filter-actions">
             <button mat-raised-button color="primary" type="submit" class="btn-filter">
-              <mat-icon>tune</mat-icon> Filtrar
+              <mat-icon>tune</mat-icon> {{ 'EVENTS.FILTER_BTN' | translate }}
             </button>
             <button mat-stroked-button type="button" (click)="clearFilters()" class="btn-clear">
               <mat-icon>clear</mat-icon>
@@ -85,10 +87,10 @@ import { EventListResponse } from '../../../core/models';
         } @else if (events.length === 0) {
           <div class="empty-state fade-in">
             <mat-icon class="empty-icon">search_off</mat-icon>
-            <h2>Nenhum evento encontrado</h2>
-            <p>Tente ajustar os filtros ou explore outras categorias.</p>
+            <h2>{{ 'EVENTS.NONE_FOUND' | translate }}</h2>
+            <p>{{ 'EVENTS.NONE_FOUND_SUB' | translate }}</p>
             <button mat-raised-button color="primary" (click)="clearFilters()">
-              <mat-icon>refresh</mat-icon> Ver todos os eventos
+              <mat-icon>refresh</mat-icon> {{ 'EVENTS.VIEW_ALL_BTN' | translate }}
             </button>
           </div>
         } @else {
@@ -109,7 +111,7 @@ import { EventListResponse } from '../../../core/models';
                   }
                   <div class="card-price-tag">
                     @if (event.minPrice === 0) {
-                      <span class="free-tag">GRÁTIS</span>
+                      <span class="free-tag">{{ 'EVENTS.FREE' | translate }}</span>
                     } @else {
                       <span>{{ event.minPrice | currency:'BRL':'symbol':'1.0-0' }}</span>
                     }
@@ -125,9 +127,9 @@ import { EventListResponse } from '../../../core/models';
                   <div class="card-footer">
                     <span class="tickets-left">
                       <mat-icon>confirmation_number</mat-icon>
-                      {{ event.totalTicketsAvailable }} vagas
+                      {{ event.totalTicketsAvailable }} {{ 'EVENTS.SPOTS' | translate }}
                     </span>
-                    <span class="card-cta">Ver detalhes <mat-icon>arrow_forward</mat-icon></span>
+                    <span class="card-cta">{{ 'EVENTS.VIEW_DETAILS' | translate }} <mat-icon>arrow_forward</mat-icon></span>
                   </div>
                 </div>
               </a>

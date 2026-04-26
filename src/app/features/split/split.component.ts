@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { SplitPaymentService, SplitPayment } from '../../core/services/split-payment.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -15,7 +16,8 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [
     CommonModule, RouterLink,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatSnackBarModule, MatTooltipModule
+    MatSnackBarModule, MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <div class="split-page">

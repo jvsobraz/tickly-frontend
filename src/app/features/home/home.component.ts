@@ -9,16 +9,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+import { TranslateModule } from '@ngx-translate/core';
 import { EventService } from '../../core/services/event.service';
 import { EventListResponse } from '../../core/models';
 
 const CATEGORIES = [
-  { label: 'Shows',    icon: 'music_note',  value: 'Show / Concerto' },
-  { label: 'Festival', icon: 'festival',     value: 'Festival' },
-  { label: 'Teatro',   icon: 'theater_comedy', value: 'Teatro' },
-  { label: 'Stand-up', icon: 'mic',          value: 'Stand-up Comedy' },
-  { label: 'Esportes', icon: 'sports_soccer', value: 'Esportes' },
-  { label: 'Cultura',  icon: 'palette',      value: 'Cultura' },
+  { labelKey: 'HOME.CAT_SHOWS',    icon: 'music_note',     value: 'Show / Concerto' },
+  { labelKey: 'HOME.CAT_FESTIVAL', icon: 'festival',        value: 'Festival' },
+  { labelKey: 'HOME.CAT_TEATRO',   icon: 'theater_comedy',  value: 'Teatro' },
+  { labelKey: 'HOME.CAT_STANDUP',  icon: 'mic',             value: 'Stand-up Comedy' },
+  { labelKey: 'HOME.CAT_ESPORTES', icon: 'sports_soccer',   value: 'Esportes' },
+  { labelKey: 'HOME.CAT_CULTURA',  icon: 'palette',         value: 'Cultura' },
 ];
 
 @Component({
@@ -27,7 +28,8 @@ const CATEGORIES = [
   imports: [
     CommonModule, RouterLink, FormsModule,
     MatButtonModule, MatIconModule, MatInputModule,
-    MatFormFieldModule, MatChipsModule, MatProgressSpinnerModule, MatCardModule
+    MatFormFieldModule, MatChipsModule, MatProgressSpinnerModule, MatCardModule,
+    TranslateModule
   ],
   template: `
     <!-- Hero ──────────────────────────────────────────────────────────────── -->
@@ -35,9 +37,9 @@ const CATEGORIES = [
       <div class="hero-bg"></div>
       <div class="hero-content container">
         <div class="hero-text fade-in">
-          <span class="hero-eyebrow">🎫 A maior plataforma de ingressos do Brasil</span>
-          <h1>Encontre os Melhores <span class="gradient-text">Eventos</span> Perto de Você</h1>
-          <p>Shows, festivais, teatro, stand-up e muito mais. Compre com segurança e receba na hora.</p>
+          <span class="hero-eyebrow">{{ 'HOME.EYEBROW' | translate }}</span>
+          <h1>{{ 'HOME.HERO_TITLE' | translate }} <span class="gradient-text">{{ 'HOME.HERO_TITLE_HIGHLIGHT' | translate }}</span> {{ 'HOME.HERO_TITLE_SUFFIX' | translate }}</h1>
+          <p>{{ 'HOME.HERO_DESC' | translate }}</p>
         </div>
 
         <div class="search-card fade-in-delay-1">
@@ -45,10 +47,10 @@ const CATEGORIES = [
             <div class="search-field">
               <mat-icon>search</mat-icon>
               <input [(ngModel)]="searchQuery" (keyup.enter)="goSearch()"
-                     placeholder="Buscar eventos, artistas, locais..." class="search-input">
+                     [placeholder]="'HOME.SEARCH_PLACEHOLDER' | translate" class="search-input">
             </div>
             <button mat-raised-button color="accent" (click)="goSearch()" class="search-btn">
-              Buscar
+              {{ 'HOME.SEARCH_BTN' | translate }}
             </button>
           </div>
 
@@ -56,7 +58,7 @@ const CATEGORIES = [
             @for (cat of categories; track cat.value) {
               <button class="cat-pill" (click)="goCategory(cat.value)">
                 <mat-icon>{{ cat.icon }}</mat-icon>
-                {{ cat.label }}
+                {{ cat.labelKey | translate }}
               </button>
             }
           </div>
@@ -67,10 +69,10 @@ const CATEGORIES = [
     <!-- Stats bar ──────────────────────────────────────────────────────────── -->
     <section class="stats-bar">
       <div class="container stats-inner">
-        @for (stat of stats; track stat.label) {
+        @for (stat of stats; track stat.labelKey) {
           <div class="stat-item">
             <strong class="stat-num">{{ stat.value }}</strong>
-            <span class="stat-lbl">{{ stat.label }}</span>
+            <span class="stat-lbl">{{ stat.labelKey | translate }}</span>
           </div>
         }
       </div>
@@ -80,11 +82,11 @@ const CATEGORIES = [
     <section class="container events-section">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Próximos Eventos</h2>
-          <p class="section-subtitle">Garanta seu ingresso antes que esgote</p>
+          <h2 class="section-title">{{ 'HOME.UPCOMING_EVENTS' | translate }}</h2>
+          <p class="section-subtitle">{{ 'HOME.UPCOMING_SUBTITLE' | translate }}</p>
         </div>
         <a mat-stroked-button color="primary" routerLink="/events">
-          Ver todos <mat-icon>arrow_forward</mat-icon>
+          {{ 'HOME.VIEW_ALL' | translate }} <mat-icon>arrow_forward</mat-icon>
         </a>
       </div>
 
@@ -106,8 +108,8 @@ const CATEGORIES = [
       } @else if (events.length === 0) {
         <div class="empty-state">
           <mat-icon class="empty-icon">event_busy</mat-icon>
-          <h2>Nenhum evento disponível no momento</h2>
-          <p>Volte em breve para conferir novidades!</p>
+          <h2>{{ 'HOME.NO_EVENTS' | translate }}</h2>
+          <p>{{ 'HOME.NO_EVENTS_SUB' | translate }}</p>
         </div>
       } @else {
         <div class="events-grid">
@@ -120,7 +122,7 @@ const CATEGORIES = [
                 <div class="ec-overlay"></div>
                 <div class="ec-price-tag">
                   @if (event.minPrice === 0) {
-                    <span class="tag-free">GRATUITO</span>
+                    <span class="tag-free">{{ 'HOME.FREE' | translate }}</span>
                   } @else {
                     <span class="tag-price">A partir de {{ event.minPrice | currency:'BRL':'symbol':'1.0-0' }}</span>
                   }
@@ -133,7 +135,7 @@ const CATEGORIES = [
                   <span><mat-icon>location_on</mat-icon>{{ event.city }}/{{ event.state }}</span>
                 </div>
                 <button mat-raised-button color="primary" class="ec-btn">
-                  <mat-icon>confirmation_number</mat-icon> Comprar
+                  <mat-icon>confirmation_number</mat-icon> {{ 'HOME.BUY' | translate }}
                 </button>
               </div>
             </div>
@@ -145,15 +147,15 @@ const CATEGORIES = [
     <!-- Category showcase ──────────────────────────────────────────────────── -->
     <section class="cat-section">
       <div class="container">
-        <h2 class="section-title text-center">Explore por Categoria</h2>
-        <p class="section-subtitle text-center">Encontre o evento perfeito para você</p>
+        <h2 class="section-title text-center">{{ 'HOME.EXPLORE_CATS' | translate }}</h2>
+        <p class="section-subtitle text-center">{{ 'HOME.EXPLORE_SUBTITLE' | translate }}</p>
         <div class="cat-grid">
           @for (cat of categories; track cat.value) {
             <div class="cat-card" (click)="goCategory(cat.value)">
               <div class="cat-icon-wrap">
                 <mat-icon>{{ cat.icon }}</mat-icon>
               </div>
-              <span>{{ cat.label }}</span>
+              <span>{{ cat.labelKey | translate }}</span>
             </div>
           }
         </div>
@@ -163,15 +165,15 @@ const CATEGORIES = [
     <!-- How it works ───────────────────────────────────────────────────────── -->
     <section class="how-section">
       <div class="container">
-        <h2 class="section-title text-center">Como Funciona</h2>
-        <p class="section-subtitle text-center">Em 3 passos simples você garante seu ingresso</p>
+        <h2 class="section-title text-center">{{ 'HOME.HOW_TITLE' | translate }}</h2>
+        <p class="section-subtitle text-center">{{ 'HOME.HOW_SUBTITLE' | translate }}</p>
         <div class="steps-grid">
           @for (step of steps; track step.num) {
             <div class="step-card">
               <div class="step-num">{{ step.num }}</div>
               <div class="step-icon"><mat-icon>{{ step.icon }}</mat-icon></div>
-              <h3>{{ step.title }}</h3>
-              <p>{{ step.desc }}</p>
+              <h3>{{ step.titleKey | translate }}</h3>
+              <p>{{ step.descKey | translate }}</p>
             </div>
           }
         </div>
@@ -181,11 +183,11 @@ const CATEGORIES = [
     <!-- Why us ─────────────────────────────────────────────────────────────── -->
     <section class="why-section container">
       <div class="why-grid">
-        @for (item of whyUs; track item.title) {
+        @for (item of whyUs; track item.titleKey) {
           <div class="why-card">
             <div class="why-icon"><mat-icon>{{ item.icon }}</mat-icon></div>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.desc }}</p>
+            <h3>{{ item.titleKey | translate }}</h3>
+            <p>{{ item.descKey | translate }}</p>
           </div>
         }
       </div>
@@ -195,11 +197,11 @@ const CATEGORIES = [
     <section class="cta-section">
       <div class="container cta-inner">
         <div class="cta-text">
-          <h2>Organize seu Evento Conosco</h2>
-          <p>Crie e venda ingressos em minutos. Sem mensalidade — pagamos quando você vende.</p>
+          <h2>{{ 'HOME.CTA_TITLE' | translate }}</h2>
+          <p>{{ 'HOME.CTA_DESC' | translate }}</p>
         </div>
         <a mat-raised-button routerLink="/register" class="cta-btn">
-          Começar Agora <mat-icon>arrow_forward</mat-icon>
+          {{ 'HOME.CTA_BTN' | translate }} <mat-icon>arrow_forward</mat-icon>
         </a>
       </div>
     </section>
@@ -688,23 +690,23 @@ export class HomeComponent implements OnInit {
   categories = CATEGORIES;
 
   stats = [
-    { value: '500+',   label: 'Eventos Realizados' },
-    { value: '50K+',   label: 'Ingressos Vendidos' },
-    { value: '120+',   label: 'Cidades' },
-    { value: '4.9 ★',  label: 'Avaliação Média' },
+    { value: '500+',   labelKey: 'HOME.STAT_EVENTS' },
+    { value: '50K+',   labelKey: 'HOME.STAT_TICKETS' },
+    { value: '120+',   labelKey: 'HOME.STAT_CITIES' },
+    { value: '4.9 ★',  labelKey: 'HOME.STAT_RATING' },
   ];
 
   steps = [
-    { num: '1', icon: 'search',          title: 'Encontre',  desc: 'Busque por cidade, data ou categoria e descubra eventos incríveis' },
-    { num: '2', icon: 'credit_card',     title: 'Compre',    desc: 'Pague com cartão em até 12x ou via PIX. 100% seguro.' },
-    { num: '3', icon: 'qr_code_scanner', title: 'Aproveite', desc: 'Receba seu QR Code instantaneamente e entre no evento sem filas' },
+    { num: '1', icon: 'search',          titleKey: 'HOME.STEP1_TITLE', descKey: 'HOME.STEP1_DESC' },
+    { num: '2', icon: 'credit_card',     titleKey: 'HOME.STEP2_TITLE', descKey: 'HOME.STEP2_DESC' },
+    { num: '3', icon: 'qr_code_scanner', titleKey: 'HOME.STEP3_TITLE', descKey: 'HOME.STEP3_DESC' },
   ];
 
   whyUs = [
-    { icon: 'security',      title: 'Pagamento Seguro',      desc: 'Transações protegidas com criptografia SSL e Stripe' },
-    { icon: 'bolt',          title: 'Entrega Instantânea',   desc: 'QR Code gerado imediatamente após a confirmação do pagamento' },
-    { icon: 'pix',           title: 'PIX e Cartão',          desc: 'Aceite PIX com QR Code dinâmico ou cartão em até 12x' },
-    { icon: 'support_agent', title: 'Suporte Dedicado',      desc: 'Equipe pronta para ajudar antes, durante e após o evento' },
+    { icon: 'security',      titleKey: 'HOME.WHY1_TITLE', descKey: 'HOME.WHY1_DESC' },
+    { icon: 'bolt',          titleKey: 'HOME.WHY2_TITLE', descKey: 'HOME.WHY2_DESC' },
+    { icon: 'pix',           titleKey: 'HOME.WHY3_TITLE', descKey: 'HOME.WHY3_DESC' },
+    { icon: 'support_agent', titleKey: 'HOME.WHY4_TITLE', descKey: 'HOME.WHY4_DESC' },
   ];
 
   ngOnInit(): void {

@@ -8,13 +8,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { TranslateModule } from '@ngx-translate/core';
 import { LoyaltyService } from '../../core/services/loyalty.service';
 import { LoyaltyBalanceResponse, LoyaltyTransactionResponse, LoyaltyTransactionType } from '../../core/models';
 
 @Component({
   selector: 'app-loyalty',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTableModule, MatChipsModule, MatDividerModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTableModule, MatChipsModule, MatDividerModule, TranslateModule],
   template: `
     <div class="container page-container">
       <h1 class="section-title">Programa de Fidelidade</h1>

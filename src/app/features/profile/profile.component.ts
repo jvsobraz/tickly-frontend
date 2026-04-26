@@ -16,6 +16,7 @@ import { TicketService } from '../../core/services/ticket.service';
 import { OrderService } from '../../core/services/order.service';
 import { LoyaltyService } from '../../core/services/loyalty.service';
 import { UpdateProfileRequest, ChangePasswordRequest, UserRole, TwoFactorSetupResponse } from '../../core/models';
+import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -24,7 +25,8 @@ import { forkJoin } from 'rxjs';
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink,
     MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule,
-    MatProgressSpinnerModule, MatSnackBarModule, MatDividerModule, MatTooltipModule
+    MatProgressSpinnerModule, MatSnackBarModule, MatDividerModule, MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <div class="profile-page">

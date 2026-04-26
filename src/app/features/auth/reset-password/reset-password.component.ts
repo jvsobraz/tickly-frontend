@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
@@ -24,7 +25,8 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
     CommonModule, RouterLink, ReactiveFormsModule,
     MatButtonModule, MatCardModule, MatIconModule,
     MatInputModule, MatFormFieldModule,
-    MatProgressSpinnerModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="auth-container">

@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { TranslateModule } from '@ngx-translate/core';
 import { TicketTransferService } from '../../core/services/ticket-transfer.service';
 import { TicketTransferResponse, TicketTransferStatus } from '../../core/models';
 
@@ -22,7 +23,8 @@ import { TicketTransferResponse, TicketTransferStatus } from '../../core/models'
     CommonModule, RouterLink, ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule,
     MatInputModule, MatTabsModule, MatProgressSpinnerModule,
-    MatSnackBarModule, MatChipsModule, MatDividerModule
+    MatSnackBarModule, MatChipsModule, MatDividerModule,
+    TranslateModule
   ],
   template: `
     <div class="container page-container">

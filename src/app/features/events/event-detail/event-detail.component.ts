@@ -20,6 +20,7 @@ import { FlashSaleService } from '../../../core/services/flash-sale.service';
 import { ReviewService, EventReviewSummary } from '../../../core/services/review.service';
 import { SeatMapService, SeatMap } from '../../../core/services/seat-map.service';
 import { SeatMapComponent } from '../../seat-map/seat-map.component';
+import { TranslateModule } from '@ngx-translate/core';
 import { EventResponse, TicketTypeResponse, PaymentMethod, OrderItemRequest, SocialProofResponse, FlashSaleResponse } from '../../../core/models';
 
 interface CartItem {
@@ -35,7 +36,8 @@ interface CartItem {
     MatButtonModule, MatCardModule, MatIconModule,
     MatProgressSpinnerModule, MatSnackBarModule,
     MatDividerModule, MatRadioModule, MatSelectModule, MatFormFieldModule,
-    SeatMapComponent
+    SeatMapComponent,
+    TranslateModule
   ],
   template: `
     @if (loading) {

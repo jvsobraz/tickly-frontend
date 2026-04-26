@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 import { EventService } from '../../../core/services/event.service';
 import { EventListResponse } from '../../../core/models';
 
@@ -20,7 +21,8 @@ import { EventListResponse } from '../../../core/models';
   imports: [
     CommonModule, RouterLink, ReactiveFormsModule, FormsModule,
     MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule,
-    MatSelectModule, MatProgressSpinnerModule, MatSnackBarModule, MatDialogModule
+    MatSelectModule, MatProgressSpinnerModule, MatSnackBarModule, MatDialogModule,
+    TranslateModule
   ],
   template: `
     <div class="my-events-page">

@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
+import { TranslateModule } from '@ngx-translate/core';
 import { OrderService } from '../../core/services/order.service';
 import { OrderResponse, OrderStatus, PaymentMethod } from '../../core/models';
 
@@ -19,7 +20,8 @@ declare var Stripe: any;
   imports: [
     CommonModule, RouterLink,
     MatButtonModule, MatCardModule, MatIconModule,
-    MatProgressSpinnerModule, MatSnackBarModule, MatDividerModule
+    MatProgressSpinnerModule, MatSnackBarModule, MatDividerModule,
+    TranslateModule
   ],
   template: `
     <div class="checkout-page">

@@ -10,8 +10,10 @@ import { MatListModule } from '@angular/material/list';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService, AppNotification } from '../../core/services/notification.service';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-navbar',
@@ -20,7 +22,8 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
     CommonModule, RouterLink, RouterLinkActive,
     MatToolbarModule, MatButtonModule, MatIconModule,
     MatMenuModule, MatDividerModule, MatSidenavModule,
-    MatListModule, MatBadgeModule, MatTooltipModule
+    MatListModule, MatBadgeModule, MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <!-- Mobile drawer -->
@@ -39,80 +42,90 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
         <mat-nav-list class="drawer-nav">
           <a mat-list-item routerLink="/events" (click)="drawerOpen.set(false)">
             <mat-icon matListItemIcon>event</mat-icon>
-            <span matListItemTitle>Eventos</span>
+            <span matListItemTitle>{{ 'NAV.EVENTS' | translate }}</span>
           </a>
           <a mat-list-item routerLink="/resale" (click)="drawerOpen.set(false)">
             <mat-icon matListItemIcon>swap_horiz</mat-icon>
-            <span matListItemTitle>Revendas</span>
+            <span matListItemTitle>{{ 'NAV.RESALES' | translate }}</span>
           </a>
 
           @if (authService.isAuthenticated()) {
             <mat-divider />
             <a mat-list-item routerLink="/my-tickets" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>qr_code_2</mat-icon>
-              <span matListItemTitle>Meus Ingressos</span>
+              <span matListItemTitle>{{ 'NAV.MY_TICKETS_FULL' | translate }}</span>
             </a>
             <a mat-list-item routerLink="/profile" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>account_circle</mat-icon>
-              <span matListItemTitle>Meu Perfil</span>
+              <span matListItemTitle>{{ 'NAV.PROFILE' | translate }}</span>
             </a>
             <a mat-list-item routerLink="/my-waitlist" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>hourglass_top</mat-icon>
-              <span matListItemTitle>Lista de Espera</span>
+              <span matListItemTitle>{{ 'NAV.WAITLIST' | translate }}</span>
             </a>
             <a mat-list-item routerLink="/loyalty" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>stars</mat-icon>
-              <span matListItemTitle>Pontos de Fidelidade</span>
+              <span matListItemTitle>{{ 'NAV.LOYALTY' | translate }}</span>
             </a>
             <a mat-list-item routerLink="/ticket-transfers" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>swap_horiz</mat-icon>
-              <span matListItemTitle>Transferir Ingresso</span>
+              <span matListItemTitle>{{ 'NAV.TRANSFERS' | translate }}</span>
             </a>
 
             @if (authService.isOrganizer()) {
               <mat-divider />
               <a mat-list-item routerLink="/admin" (click)="drawerOpen.set(false)">
                 <mat-icon matListItemIcon>dashboard</mat-icon>
-                <span matListItemTitle>Painel do Organizador</span>
+                <span matListItemTitle>{{ 'NAV.ORGANIZER_PANEL' | translate }}</span>
               </a>
               <a mat-list-item routerLink="/admin/my-events" (click)="drawerOpen.set(false)">
                 <mat-icon matListItemIcon>event_note</mat-icon>
-                <span matListItemTitle>Meus Eventos</span>
+                <span matListItemTitle>{{ 'NAV.MY_EVENTS' | translate }}</span>
               </a>
               <a mat-list-item routerLink="/admin/scan" (click)="drawerOpen.set(false)">
                 <mat-icon matListItemIcon>qr_code_scanner</mat-icon>
-                <span matListItemTitle>Validar QR</span>
+                <span matListItemTitle>{{ 'NAV.VALIDATE_QR' | translate }}</span>
               </a>
               <a mat-list-item routerLink="/admin/payment-links" (click)="drawerOpen.set(false)">
                 <mat-icon matListItemIcon>add_link</mat-icon>
-                <span matListItemTitle>Links de Pagamento</span>
+                <span matListItemTitle>{{ 'NAV.PAYMENT_LINKS' | translate }}</span>
               </a>
               <a mat-list-item routerLink="/admin/flash-sales" (click)="drawerOpen.set(false)">
                 <mat-icon matListItemIcon>bolt</mat-icon>
-                <span matListItemTitle>Promoções Flash</span>
+                <span matListItemTitle>{{ 'NAV.FLASH_SALES' | translate }}</span>
               </a>
             }
 
             <mat-divider />
+            <!-- Language toggle in drawer -->
+            <mat-list-item (click)="languageService.toggle()">
+              <mat-icon matListItemIcon>translate</mat-icon>
+              <span matListItemTitle>{{ languageService.lang() === 'pt' ? 'English' : 'Português' }}</span>
+            </mat-list-item>
             <!-- Dark mode toggle in drawer -->
             <mat-list-item (click)="toggleDarkMode()">
               <mat-icon matListItemIcon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-              <span matListItemTitle>{{ darkMode() ? 'Modo Claro' : 'Modo Escuro' }}</span>
+              <span matListItemTitle>{{ (darkMode() ? 'NAV.LIGHT_MODE' : 'NAV.DARK_MODE') | translate }}</span>
             </mat-list-item>
 
             <a mat-list-item (click)="logout(); drawerOpen.set(false)">
               <mat-icon matListItemIcon color="warn">logout</mat-icon>
-              <span matListItemTitle>Sair</span>
+              <span matListItemTitle>{{ 'NAV.LOGOUT' | translate }}</span>
             </a>
           } @else {
             <mat-divider />
+            <!-- Language toggle for unauthenticated -->
+            <mat-list-item (click)="languageService.toggle()">
+              <mat-icon matListItemIcon>translate</mat-icon>
+              <span matListItemTitle>{{ languageService.lang() === 'pt' ? 'English' : 'Português' }}</span>
+            </mat-list-item>
             <a mat-list-item routerLink="/login" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>login</mat-icon>
-              <span matListItemTitle>Entrar</span>
+              <span matListItemTitle>{{ 'NAV.LOGIN' | translate }}</span>
             </a>
             <a mat-list-item routerLink="/register" (click)="drawerOpen.set(false)">
               <mat-icon matListItemIcon>person_add</mat-icon>
-              <span matListItemTitle>Criar Conta</span>
+              <span matListItemTitle>{{ 'NAV.REGISTER' | translate }}</span>
             </a>
           }
         </mat-nav-list>
@@ -133,37 +146,47 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
           <!-- Desktop nav -->
           <nav class="desktop-nav">
             <a mat-button routerLink="/events" routerLinkActive="active-link">
-              <mat-icon>event</mat-icon> Eventos
+              <mat-icon>event</mat-icon> {{ 'NAV.EVENTS' | translate }}
             </a>
             <a mat-button routerLink="/resale" routerLinkActive="active-link">
-              <mat-icon>sync_alt</mat-icon> Revendas
+              <mat-icon>sync_alt</mat-icon> {{ 'NAV.RESALES' | translate }}
             </a>
           </nav>
 
           @if (!authService.isAuthenticated()) {
             <div class="auth-buttons desktop-nav">
+              <!-- Language toggle -->
+              <button mat-icon-button (click)="languageService.toggle()" class="icon-btn lang-btn"
+                      [matTooltip]="languageService.lang() === 'pt' ? 'Switch to English' : 'Mudar para Português'">
+                <span class="lang-label">{{ languageService.lang() === 'pt' ? 'EN' : 'PT' }}</span>
+              </button>
               <!-- Dark mode toggle -->
-              <button mat-icon-button (click)="toggleDarkMode()" class="icon-btn" matTooltip="Alternar tema">
+              <button mat-icon-button (click)="toggleDarkMode()" class="icon-btn" [matTooltip]="'NAV.TOGGLE_THEME' | translate">
                 <mat-icon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
               </button>
-              <a mat-button routerLink="/login">Entrar</a>
+              <a mat-button routerLink="/login">{{ 'NAV.LOGIN' | translate }}</a>
               <a mat-raised-button color="primary" routerLink="/register" class="register-btn">
-                Criar Conta
+                {{ 'NAV.REGISTER' | translate }}
               </a>
             </div>
           } @else {
             <div class="desktop-nav user-actions">
               <a mat-button routerLink="/my-tickets" routerLinkActive="active-link">
-                <mat-icon>qr_code_2</mat-icon> Ingressos
+                <mat-icon>qr_code_2</mat-icon> {{ 'NAV.MY_TICKETS' | translate }}
               </a>
               @if (authService.isOrganizer()) {
                 <a mat-button routerLink="/admin" routerLinkActive="active-link">
-                  <mat-icon>dashboard</mat-icon> Painel
+                  <mat-icon>dashboard</mat-icon> {{ 'NAV.PANEL' | translate }}
                 </a>
               }
 
+              <!-- Language toggle -->
+              <button mat-icon-button (click)="languageService.toggle()" class="icon-btn lang-btn"
+                      [matTooltip]="languageService.lang() === 'pt' ? 'Switch to English' : 'Mudar para Português'">
+                <span class="lang-label">{{ languageService.lang() === 'pt' ? 'EN' : 'PT' }}</span>
+              </button>
               <!-- Dark mode toggle -->
-              <button mat-icon-button (click)="toggleDarkMode()" class="icon-btn" matTooltip="Alternar tema">
+              <button mat-icon-button (click)="toggleDarkMode()" class="icon-btn" [matTooltip]="'NAV.TOGGLE_THEME' | translate">
                 <mat-icon>{{ darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
               </button>
 
@@ -179,10 +202,10 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
               </button>
               <mat-menu #notifMenu="matMenu" class="notif-menu">
                 <div class="notif-header" (click)="$event.stopPropagation()">
-                  <span>Notificações</span>
+                  <span>{{ 'NAV.NOTIFICATIONS' | translate }}</span>
                   @if (notificationService.unreadCount() > 0) {
                     <button mat-button color="primary" (click)="markAllRead()">
-                      Marcar todas como lidas
+                      {{ 'NAV.MARK_ALL_READ' | translate }}
                     </button>
                   }
                 </div>
@@ -190,7 +213,7 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
                 @if (notifications().length === 0) {
                   <div class="notif-empty">
                     <mat-icon>notifications_none</mat-icon>
-                    <p>Sem notificações</p>
+                    <p>{{ 'NAV.NO_NOTIFICATIONS' | translate }}</p>
                   </div>
                 } @else {
                   @for (n of notifications(); track n.id) {
@@ -223,47 +246,47 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
                 </div>
                 <mat-divider />
                 <a mat-menu-item routerLink="/profile">
-                  <mat-icon>manage_accounts</mat-icon> Meu Perfil
+                  <mat-icon>manage_accounts</mat-icon> {{ 'NAV.PROFILE' | translate }}
                 </a>
                 <a mat-menu-item routerLink="/my-tickets">
-                  <mat-icon>qr_code_2</mat-icon> Meus Ingressos
+                  <mat-icon>qr_code_2</mat-icon> {{ 'NAV.MY_TICKETS_FULL' | translate }}
                 </a>
                 <a mat-menu-item routerLink="/my-waitlist">
-                  <mat-icon>hourglass_top</mat-icon> Lista de Espera
+                  <mat-icon>hourglass_top</mat-icon> {{ 'NAV.WAITLIST' | translate }}
                 </a>
                 <a mat-menu-item routerLink="/loyalty">
-                  <mat-icon>stars</mat-icon> Pontos de Fidelidade
+                  <mat-icon>stars</mat-icon> {{ 'NAV.LOYALTY' | translate }}
                 </a>
                 <a mat-menu-item routerLink="/ticket-transfers">
-                  <mat-icon>swap_horiz</mat-icon> Transferir Ingresso
+                  <mat-icon>swap_horiz</mat-icon> {{ 'NAV.TRANSFERS' | translate }}
                 </a>
                 @if (authService.isOrganizer()) {
                   <mat-divider />
                   <a mat-menu-item routerLink="/admin/my-events">
-                    <mat-icon>event_note</mat-icon> Meus Eventos
+                    <mat-icon>event_note</mat-icon> {{ 'NAV.MY_EVENTS' | translate }}
                   </a>
                   <a mat-menu-item routerLink="/admin/scan">
-                    <mat-icon>qr_code_scanner</mat-icon> Validar QR
+                    <mat-icon>qr_code_scanner</mat-icon> {{ 'NAV.VALIDATE_QR' | translate }}
                   </a>
                   <a mat-menu-item routerLink="/admin/analytics">
-                    <mat-icon>bar_chart</mat-icon> Analytics
+                    <mat-icon>bar_chart</mat-icon> {{ 'NAV.ANALYTICS' | translate }}
                   </a>
                   <a mat-menu-item routerLink="/admin/affiliates">
-                    <mat-icon>share</mat-icon> Afiliados
+                    <mat-icon>share</mat-icon> {{ 'NAV.AFFILIATES' | translate }}
                   </a>
                   <a mat-menu-item routerLink="/admin/coupons">
-                    <mat-icon>discount</mat-icon> Cupons
+                    <mat-icon>discount</mat-icon> {{ 'NAV.COUPONS' | translate }}
                   </a>
                   <a mat-menu-item routerLink="/admin/payment-links">
-                    <mat-icon>add_link</mat-icon> Links de Pagamento
+                    <mat-icon>add_link</mat-icon> {{ 'NAV.PAYMENT_LINKS' | translate }}
                   </a>
                   <a mat-menu-item routerLink="/admin/flash-sales">
-                    <mat-icon>bolt</mat-icon> Promoções Flash
+                    <mat-icon>bolt</mat-icon> {{ 'NAV.FLASH_SALES' | translate }}
                   </a>
                 }
                 <mat-divider />
                 <button mat-menu-item (click)="logout()">
-                  <mat-icon color="warn">logout</mat-icon> Sair
+                  <mat-icon color="warn">logout</mat-icon> {{ 'NAV.LOGOUT' | translate }}
                 </button>
               </mat-menu>
             </div>
@@ -513,11 +536,25 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
     }
 
     .drawer-nav { padding-top: 8px; }
+
+    /* ── Language button ── */
+    .lang-btn {
+      color: rgba(255,255,255,.9) !important;
+      width: 36px !important;
+      height: 36px !important;
+    }
+    .lang-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,.9);
+    }
   `]
 })
 export class NavbarComponent implements OnInit {
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
+  languageService = inject(LanguageService);
 
   drawerOpen = signal(false);
   scrolled = signal(false);

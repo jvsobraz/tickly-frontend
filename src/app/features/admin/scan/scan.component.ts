@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { CheckinOfflineService } from '../../../core/services/checkin-offline.service';
 
 interface ValidateResult {
@@ -38,7 +39,8 @@ interface EventOption { id: number; title: string; }
     CommonModule, AsyncPipe, FormsModule, RouterLink,
     MatButtonModule, MatIconModule, MatInputModule,
     MatFormFieldModule, MatProgressSpinnerModule, MatSelectModule,
-    MatBadgeModule, MatTooltipModule, MatSnackBarModule
+    MatBadgeModule, MatTooltipModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="scan-page">

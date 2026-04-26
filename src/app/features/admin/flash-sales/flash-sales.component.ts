@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { TranslateModule } from '@ngx-translate/core';
 import { FlashSaleService } from '../../../core/services/flash-sale.service';
 import { FlashSaleResponse, DiscountType } from '../../../core/models';
 
@@ -21,7 +22,8 @@ import { FlashSaleResponse, DiscountType } from '../../../core/models';
     CommonModule, RouterLink, ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatProgressSpinnerModule,
-    MatSnackBarModule, MatChipsModule
+    MatSnackBarModule, MatChipsModule,
+    TranslateModule
   ],
   template: `
     <div class="container page-container">

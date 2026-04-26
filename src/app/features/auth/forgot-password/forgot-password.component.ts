@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -18,22 +19,23 @@ import { AuthService } from '../../../core/services/auth.service';
     CommonModule, RouterLink, ReactiveFormsModule,
     MatButtonModule, MatCardModule, MatIconModule,
     MatInputModule, MatFormFieldModule,
-    MatProgressSpinnerModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="auth-container">
       <mat-card class="auth-card">
         <mat-card-header>
           <mat-icon mat-card-avatar class="header-icon">lock_reset</mat-icon>
-          <mat-card-title>Recuperar Senha</mat-card-title>
-          <mat-card-subtitle>Enviaremos um link para o seu e-mail</mat-card-subtitle>
+          <mat-card-title>{{ 'AUTH.FORGOT_TITLE' | translate }}</mat-card-title>
+          <mat-card-subtitle>{{ 'AUTH.FORGOT_SUBTITLE' | translate }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
           @if (!sent) {
             <form [formGroup]="form" (ngSubmit)="onSubmit()">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>E-mail cadastrado</mat-label>
+                <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
                 <mat-icon matPrefix>email</mat-icon>
                 <input matInput type="email" formControlName="email" autocomplete="email">
                 @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
@@ -47,7 +49,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <button mat-raised-button color="primary" type="submit"
                       class="full-width submit-btn" [disabled]="loading || form.invalid">
                 @if (loading) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
-                @else { Enviar Link de Recuperação }
+                @else { {{ 'AUTH.SEND_LINK' | translate }} }
               </button>
             </form>
           } @else {
@@ -63,7 +65,7 @@ import { AuthService } from '../../../core/services/auth.service';
         </mat-card-content>
 
         <mat-card-actions>
-          <p class="auth-link"><a routerLink="/login">← Voltar ao login</a></p>
+          <p class="auth-link"><a routerLink="/login">← {{ 'AUTH.BACK_TO_LOGIN' | translate }}</a></p>
         </mat-card-actions>
       </mat-card>
     </div>

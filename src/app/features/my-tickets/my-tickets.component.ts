@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { TicketService } from '../../core/services/ticket.service';
 import { TicketResponse } from '../../core/models';
 import QRCode from 'qrcode';
@@ -16,7 +17,8 @@ import QRCode from 'qrcode';
   imports: [
     CommonModule, RouterLink,
     MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatSnackBarModule, MatTooltipModule
+    MatProgressSpinnerModule, MatSnackBarModule, MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <div class="tickets-page">

@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -17,15 +18,16 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule, ReactiveFormsModule,
     MatButtonModule, MatCardModule, MatIconModule,
-    MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatSnackBarModule
+    MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="auth-container">
       <mat-card class="auth-card">
         <mat-card-header>
           <mat-icon mat-card-avatar class="shield-icon">security</mat-icon>
-          <mat-card-title>Verificação em 2 Etapas</mat-card-title>
-          <mat-card-subtitle>Abra seu aplicativo autenticador e insira o código de 6 dígitos</mat-card-subtitle>
+          <mat-card-title>{{ 'AUTH.TWO_FA_TITLE' | translate }}</mat-card-title>
+          <mat-card-subtitle>{{ 'AUTH.TWO_FA_SUBTITLE' | translate }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
@@ -36,7 +38,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="outline" class="full-width otp-field">
-              <mat-label>Código de 6 dígitos</mat-label>
+              <mat-label>{{ 'AUTH.TWO_FA_CODE' | translate }}</mat-label>
               <mat-icon matPrefix>pin</mat-icon>
               <input matInput formControlName="code"
                      inputmode="numeric" maxlength="6"
@@ -52,7 +54,7 @@ import { AuthService } from '../../../core/services/auth.service';
             <button mat-raised-button color="primary" type="submit"
                     class="full-width submit-btn" [disabled]="form.invalid || loading">
               @if (loading) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
-              @else { <mat-icon>verified_user</mat-icon> Verificar }
+              @else { <mat-icon>verified_user</mat-icon> {{ 'AUTH.TWO_FA_BTN' | translate }} }
             </button>
           </form>
         </mat-card-content>
@@ -61,7 +63,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <p class="auth-link">
             <a (click)="goBack()" style="cursor:pointer">
               <mat-icon style="vertical-align:middle;font-size:16px">arrow_back</mat-icon>
-              Voltar ao login
+              {{ 'AUTH.BACK_TO_LOGIN' | translate }}
             </a>
           </p>
         </mat-card-actions>

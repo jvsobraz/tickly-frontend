@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -17,33 +18,34 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule, RouterLink, ReactiveFormsModule,
     MatButtonModule, MatCardModule, MatIconModule,
-    MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatSnackBarModule
+    MatInputModule, MatFormFieldModule, MatProgressSpinnerModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="auth-container">
       <mat-card class="auth-card">
         <mat-card-header>
           <mat-icon mat-card-avatar style="font-size:40px;width:40px;height:40px;color:#6200ea">confirmation_number</mat-icon>
-          <mat-card-title>Entrar</mat-card-title>
-          <mat-card-subtitle>Acesse sua conta Tickly</mat-card-subtitle>
+          <mat-card-title>{{ 'AUTH.LOGIN_TITLE' | translate }}</mat-card-title>
+          <mat-card-subtitle>{{ 'AUTH.LOGIN_SUBTITLE' | translate }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>E-mail</mat-label>
+              <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
               <mat-icon matPrefix>email</mat-icon>
               <input matInput type="email" formControlName="email" autocomplete="email">
               @if (form.get('email')?.hasError('required')) {
-                <mat-error>E-mail é obrigatório</mat-error>
+                <mat-error>{{ 'AUTH.EMAIL_REQUIRED' | translate }}</mat-error>
               }
               @if (form.get('email')?.hasError('email')) {
-                <mat-error>E-mail inválido</mat-error>
+                <mat-error>{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Senha</mat-label>
+              <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
               <mat-icon matPrefix>lock</mat-icon>
               <input matInput [type]="hidePassword ? 'password' : 'text'"
                      formControlName="password" autocomplete="current-password">
@@ -51,21 +53,21 @@ import { AuthService } from '../../../core/services/auth.service';
                 <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
               </button>
               @if (form.get('password')?.hasError('required')) {
-                <mat-error>Senha é obrigatória</mat-error>
+                <mat-error>{{ 'AUTH.PASSWORD_REQUIRED' | translate }}</mat-error>
               }
             </mat-form-field>
 
             <button mat-raised-button color="primary" type="submit"
                     class="full-width submit-btn" [disabled]="loading">
               @if (loading) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
-              @else { Entrar }
+              @else { {{ 'AUTH.LOGIN_BTN' | translate }} }
             </button>
           </form>
         </mat-card-content>
 
         <mat-card-actions>
-          <p class="auth-link forgot"><a routerLink="/forgot-password">Esqueceu sua senha?</a></p>
-          <p class="auth-link">Não tem conta? <a routerLink="/register">Cadastre-se grátis</a></p>
+          <p class="auth-link forgot"><a routerLink="/forgot-password">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a></p>
+          <p class="auth-link">{{ 'AUTH.NO_ACCOUNT' | translate }} <a routerLink="/register">{{ 'AUTH.SIGNUP_FREE' | translate }}</a></p>
         </mat-card-actions>
       </mat-card>
     </div>

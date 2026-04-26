@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models';
 
@@ -43,53 +44,54 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
     MatButtonModule, MatCardModule, MatIconModule,
     MatInputModule, MatFormFieldModule, MatSelectModule,
     MatProgressSpinnerModule, MatSnackBarModule,
-    MatCheckboxModule, MatTooltipModule
+    MatCheckboxModule, MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <div class="auth-container">
       <mat-card class="auth-card">
         <mat-card-header>
           <mat-icon mat-card-avatar class="header-icon">person_add</mat-icon>
-          <mat-card-title>Criar Conta</mat-card-title>
-          <mat-card-subtitle>Junte-se ao Tickly</mat-card-subtitle>
+          <mat-card-title>{{ 'AUTH.REGISTER_TITLE' | translate }}</mat-card-title>
+          <mat-card-subtitle>{{ 'AUTH.REGISTER_SUBTITLE' | translate }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nome completo</mat-label>
+              <mat-label>{{ 'AUTH.FULL_NAME' | translate }}</mat-label>
               <mat-icon matPrefix>person</mat-icon>
               <input matInput formControlName="name" autocomplete="name">
               @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
-                <mat-error>Nome é obrigatório</mat-error>
+                <mat-error>{{ 'AUTH.NAME_REQUIRED' | translate }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>E-mail</mat-label>
+              <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
               <mat-icon matPrefix>email</mat-icon>
               <input matInput type="email" formControlName="email" autocomplete="email">
               @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
-                <mat-error>E-mail é obrigatório</mat-error>
+                <mat-error>{{ 'AUTH.EMAIL_REQUIRED' | translate }}</mat-error>
               }
               @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
-                <mat-error>E-mail inválido</mat-error>
+                <mat-error>{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
               }
             </mat-form-field>
 
             <!-- Password -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Senha</mat-label>
+              <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
               <mat-icon matPrefix>lock</mat-icon>
               <input matInput [type]="hidePassword ? 'password' : 'text'"
                      formControlName="password" autocomplete="new-password">
               <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
-                      [matTooltip]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'">
+                      [matTooltip]="(hidePassword ? 'AUTH.SHOW_PASSWORD' : 'AUTH.HIDE_PASSWORD') | translate">
                 <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
               </button>
               @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
-                <mat-error>Senha é obrigatória</mat-error>
+                <mat-error>{{ 'AUTH.PASSWORD_REQUIRED' | translate }}</mat-error>
               }
             </mat-form-field>
 
@@ -101,20 +103,20 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
                     <div class="strength-segment" [class]="getSegmentClass(i)"></div>
                   }
                 </div>
-                <span class="strength-label" [class]="'strength-' + strengthLevel">{{ strengthLabel }}</span>
+                <span class="strength-label" [class]="'strength-' + strengthLevel">{{ strengthLabel | translate }}</span>
                 <div class="strength-rules">
-                  <span [class.rule-ok]="hasMinLength">{{ hasMinLength ? '✓' : '○' }} 8+ caracteres</span>
-                  <span [class.rule-ok]="hasUpper">{{ hasUpper ? '✓' : '○' }} Maiúscula</span>
-                  <span [class.rule-ok]="hasLower">{{ hasLower ? '✓' : '○' }} Minúscula</span>
-                  <span [class.rule-ok]="hasNumber">{{ hasNumber ? '✓' : '○' }} Número</span>
-                  <span [class.rule-ok]="hasSpecial">{{ hasSpecial ? '✓' : '○' }} Especial</span>
+                  <span [class.rule-ok]="hasMinLength">{{ hasMinLength ? '✓' : '○' }} {{ 'AUTH.RULE_8CHARS' | translate }}</span>
+                  <span [class.rule-ok]="hasUpper">{{ hasUpper ? '✓' : '○' }} {{ 'AUTH.RULE_UPPER' | translate }}</span>
+                  <span [class.rule-ok]="hasLower">{{ hasLower ? '✓' : '○' }} {{ 'AUTH.RULE_LOWER' | translate }}</span>
+                  <span [class.rule-ok]="hasNumber">{{ hasNumber ? '✓' : '○' }} {{ 'AUTH.RULE_NUMBER' | translate }}</span>
+                  <span [class.rule-ok]="hasSpecial">{{ hasSpecial ? '✓' : '○' }} {{ 'AUTH.RULE_SPECIAL' | translate }}</span>
                 </div>
               </div>
             }
 
             <!-- Confirm password -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Confirmar senha</mat-label>
+              <mat-label>{{ 'AUTH.CONFIRM_PASSWORD' | translate }}</mat-label>
               <mat-icon matPrefix>lock_outline</mat-icon>
               <input matInput [type]="hideConfirm ? 'password' : 'text'"
                      formControlName="confirmPassword" autocomplete="new-password">
@@ -122,47 +124,47 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
                 <mat-icon>{{ hideConfirm ? 'visibility' : 'visibility_off' }}</mat-icon>
               </button>
               @if (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched) {
-                <mat-error>As senhas não coincidem</mat-error>
+                <mat-error>{{ 'AUTH.PASSWORDS_MISMATCH' | translate }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Telefone (opcional)</mat-label>
+              <mat-label>{{ 'AUTH.PHONE' | translate }}</mat-label>
               <mat-icon matPrefix>phone</mat-icon>
               <input matInput formControlName="phone" placeholder="(11) 99999-9999"
                      autocomplete="tel">
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Tipo de conta</mat-label>
+              <mat-label>{{ 'AUTH.ACCOUNT_TYPE' | translate }}</mat-label>
               <mat-select formControlName="role">
-                <mat-option [value]="UserRole.Customer">Comprador de Ingressos</mat-option>
-                <mat-option [value]="UserRole.Organizer">Organizador de Eventos</mat-option>
+                <mat-option [value]="UserRole.Customer">{{ 'AUTH.BUYER' | translate }}</mat-option>
+                <mat-option [value]="UserRole.Organizer">{{ 'AUTH.ORGANIZER' | translate }}</mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- Terms -->
             <div class="terms-box">
               <mat-checkbox formControlName="acceptedTerms" color="primary">
-                Concordo com os <a href="/terms" target="_blank">Termos de Uso</a>
-                e a <a href="/privacy" target="_blank">Política de Privacidade</a> (LGPD)
+                {{ 'AUTH.TERMS' | translate }} <a href="/terms" target="_blank">{{ 'AUTH.TERMS_LINK' | translate }}</a>
+                {{ 'AUTH.AND' | translate }} <a href="/privacy" target="_blank">{{ 'AUTH.PRIVACY_LINK' | translate }}</a> (LGPD)
               </mat-checkbox>
               @if (form.get('acceptedTerms')?.hasError('required') && form.get('acceptedTerms')?.touched) {
-                <p class="terms-error">Você precisa aceitar os termos para continuar.</p>
+                <p class="terms-error">{{ 'AUTH.TERMS_REQUIRED' | translate }}</p>
               }
             </div>
 
             <button mat-raised-button color="primary" type="submit"
                     class="full-width submit-btn" [disabled]="loading || form.invalid">
               @if (loading) { <mat-progress-spinner diameter="20" mode="indeterminate" /> }
-              @else { Criar Conta }
+              @else { {{ 'AUTH.REGISTER_BTN' | translate }} }
             </button>
 
           </form>
         </mat-card-content>
 
         <mat-card-actions>
-          <p class="auth-link">Já tem conta? <a routerLink="/login">Entrar</a></p>
+          <p class="auth-link">{{ 'AUTH.HAS_ACCOUNT' | translate }} <a routerLink="/login">{{ 'AUTH.LOGIN_BTN' | translate }}</a></p>
         </mat-card-actions>
       </mat-card>
     </div>
@@ -251,7 +253,7 @@ export class RegisterComponent {
   }
 
   get strengthLabel(): string {
-    const labels = ['', 'Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte'];
+    const labels = ['', 'AUTH.STRENGTH_VERY_WEAK', 'AUTH.STRENGTH_WEAK', 'AUTH.STRENGTH_FAIR', 'AUTH.STRENGTH_GOOD', 'AUTH.STRENGTH_STRONG'];
     return labels[this.strengthLevel] ?? '';
   }
 

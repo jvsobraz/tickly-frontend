@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { EventService } from '../../core/services/event.service';
 import { EventListResponse, EventStatus } from '../../core/models';
 
@@ -17,7 +18,8 @@ import { EventListResponse, EventStatus } from '../../core/models';
   imports: [
     CommonModule, RouterLink,
     MatButtonModule, MatCardModule, MatIconModule,
-    MatProgressSpinnerModule, MatTableModule, MatChipsModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatTableModule, MatChipsModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="container page-container">

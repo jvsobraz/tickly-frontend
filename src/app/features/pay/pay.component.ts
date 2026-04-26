@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { PaymentLinkService } from '../../core/services/payment-link.service';
 import { OrderService } from '../../core/services/order.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -20,7 +21,8 @@ import { PaymentLinkResponse, PaymentMethod } from '../../core/models';
   imports: [
     CommonModule, RouterLink, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule, MatSnackBarModule
+    MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule, MatSnackBarModule,
+    TranslateModule
   ],
   template: `
     <div class="container pay-container">

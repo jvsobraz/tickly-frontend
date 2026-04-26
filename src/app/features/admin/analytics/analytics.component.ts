@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
+import { TranslateModule } from '@ngx-translate/core';
 import { AnalyticsService } from '../../../core/services/analytics.service';
 import { OrganizerDashboardResponse } from '../../../core/models';
 import { Chart, registerables } from 'chart.js';
@@ -15,7 +16,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTableModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTableModule, TranslateModule],
   template: `
     <div class="container page-container">
       <div class="page-header">

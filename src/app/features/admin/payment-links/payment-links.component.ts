@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { PaymentLinkService } from '../../../core/services/payment-link.service';
 import { PaymentLinkResponse } from '../../../core/models';
 
@@ -21,7 +22,8 @@ import { PaymentLinkResponse } from '../../../core/models';
     CommonModule, RouterLink, ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule,
     MatInputModule, MatProgressSpinnerModule, MatSnackBarModule,
-    MatChipsModule, MatTooltipModule
+    MatChipsModule, MatTooltipModule,
+    TranslateModule
   ],
   template: `
     <div class="container page-container">

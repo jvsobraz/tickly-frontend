@@ -9,13 +9,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 import { AffiliateService } from '../../../core/services/affiliate.service';
 import { AffiliateLinkResponse, AffiliateEarningsResponse } from '../../../core/models';
 
 @Component({
   selector: 'app-affiliates',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule, MatTableModule, MatChipsModule, MatDialogModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule, MatTableModule, MatChipsModule, MatDialogModule, TranslateModule],
   template: `
     <div class="container page-container">
       <div class="page-header">
